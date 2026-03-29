@@ -1,2 +1,16 @@
 # PhotoForge
-PhotoForge – Photo normalization, deduplication and EXIF-based organization tool
+
+PhotoForge is a Python-based tool to reconstruct clean photo libraries from messy collections.
+
+It focuses on:
+- duplicate detection (exact and near)
+- EXIF-based naming and organization
+- deterministic, reproducible processing pipelines
+
+## Status
+
+Early development.
+
+## Vision
+
+Turn chaotic photo collections into structured, canonical libraries.
