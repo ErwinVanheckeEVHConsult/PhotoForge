@@ -73,16 +73,16 @@ Test:
 
 - Known hash values
 - Empty file
-- Output format, 64-character lowercase hex
+- Output format: 64-character lowercase hex
 
 ### 4. Scanner — Discovery + Enrichment (`scanner.py`)
 
 Implement:
 
 - Recursive file discovery
-- Supported file filtering, JPEG only
+- Supported file filtering (JPEG only)
 - Deterministic ordering
-- Metadata extraction, size and mtime timestamp
+- Metadata extraction (size, mtime timestamp)
 - Timestamp extraction via EXIF module
 - Hash computation
 - Build complete `FileRecord`
@@ -104,5 +104,148 @@ Implement:
 
 Ranking key:
 
-```python
-(-record.size, 0 if record.timestamp_source != "mtime" else 1, str(record.path))
+`(-record.size, 0 if record.timestamp_source != "mtime" else 1, str(record.path))`
+
+Test:
+
+- One canonical per group
+- Tie-breakers strictly respected
+- Stable results across runs
+
+### 6. Planner — Naming + Actions (`planner.py`)
+
+Extend planner.
+
+Implement:
+
+- Canonical filename:
+  `YYYY-MM-DD_HHMMSS_<short-hash>.jpg`
+- Target path resolution:
+  - in-place
+  - organized: `<output>/<YYYY>/...`
+- Action classification:
+  - `skip`
+  - `rename`
+  - `move`
+  - `collision`
+- Duplicates:
+  - no action
+  - `target_path = None`
+
+Test:
+
+- Filename format exact
+- Collision detection correct
+- Duplicates untouched
+- Actions match spec exactly
+
+### 7. Reporter (`reporter.py`)
+
+Implement:
+
+- Console summary
+- JSON output
+
+Must include:
+
+- summary counts
+- planner records
+- planner actions
+- scanner diagnostics
+
+Test:
+
+- Correct counts
+- JSON serialization (`Path` and `datetime` handled)
+- Deterministic output
+
+### 8. CLI — Dry Run (`cli.py`)
+
+Wire:
+
+`scan → plan → report`
+
+Rules:
+
+- Dry-run default
+- No filesystem mutation
+
+Test:
+
+- End-to-end run
+- Mixed datasets (duplicates, errors, skips)
+
+### 9. Operations (`operations.py`)
+
+Implement:
+
+- Apply `PlannedAction` for canonical files only
+
+Rules:
+
+- No overwrite
+- Create directories if needed
+- No duplicate modification
+- No metadata changes
+
+Test:
+
+- rename works
+- move works
+- skip and collision do nothing
+
+### 10. CLI — Apply Mode (`cli.py`)
+
+Extend CLI:
+
+- Add `--apply`
+
+Flow:
+
+`scan → plan → report → apply`
+
+Test:
+
+- Dry-run vs apply behavior difference
+- Filesystem changes match plan exactly
+
+## Critical Invariants
+
+- Deterministic ordering everywhere
+- Scanner returns only complete `FileRecord` objects
+- Planner is the single source of truth for actions
+- Duplicates are never modified
+- Collisions never overwrite
+- EXIF fallback strictly enforced
+- Output schema matches `SPEC.md` exactly
+
+## Common Pitfalls
+
+- Using filesystem iteration order (non-deterministic)
+- Treating duplicates as actions
+- Overwriting collisions
+- Mixing planner logic into scanner or CLI
+- Returning partial records
+- Accepting non-standard EXIF formats
+- Forgetting `.jpg` normalization
+- Leaking `Path` or `datetime` into JSON
+
+## Execution Guidance
+
+Do not:
+
+- Jump ahead to CLI before planner is correct
+- Implement apply before dry-run is validated
+- Add convenience abstractions
+
+Do:
+
+- Validate each layer independently
+- Keep modules strictly separated
+- Stop and fix determinism issues immediately
+
+## Status
+
+- Design: complete
+- Specification: frozen
+- Next step: implementation
