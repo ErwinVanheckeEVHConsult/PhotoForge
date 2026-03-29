@@ -14,3 +14,7 @@ Early development.
 ## Vision
 
 Turn chaotic photo collections into structured, canonical libraries.
+
+## Specification
+
+See [SPEC.md](./SPEC.md) for the exact v0.1 behavior definition.
