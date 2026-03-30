@@ -35,6 +35,7 @@ Nothing in this file should influence v0.1 implementation.
 - Keep-best-file heuristics beyond size
 - Perceptual hashing (near-duplicate detection)
 - Same-photo-different-encoding detection
+- Allow configurable priority rules (beyond timestamp) to select the best/canonical photo (e.g. resolution, file size, filename patterns, source preference)
 
 ---
 
