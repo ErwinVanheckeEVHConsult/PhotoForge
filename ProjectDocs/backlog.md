@@ -14,6 +14,7 @@ Nothing in this file should influence v0.1 implementation.
 - Detect inconsistent timestamp clusters
 - Optional interactive timestamp correction
 - Support EXIF timezone fields if present
+- Use filename and folder name patterns as fallback timestamp source when EXIF is missing
 
 ---
 
@@ -74,7 +75,7 @@ Nothing in this file should influence v0.1 implementation.
 - Metadata rewriting
 - Keyword/tag extraction
 - GPS-based naming or grouping
-- Extract contextual metadata from filenames and folder names (e.g. location, event labels, date ranges)
+- Extract contextual metadata from filenames and folder names (e.g. location, event labels)
 
 ---
 
@@ -109,4 +110,4 @@ Nothing in this file should influence v0.1 implementation.
 ## Notes
 
 - v0.1 scope is intentionally minimal and deterministic
-- All items here are out of scope for v0.1 unless explicitly promoted 
+- All items here are out of scope for v0.1 unless explicitly promoted
