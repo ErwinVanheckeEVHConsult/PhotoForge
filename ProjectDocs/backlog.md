@@ -73,6 +73,7 @@ Nothing in this file should influence v0.1 implementation.
 - Metadata rewriting
 - Keyword/tag extraction
 - GPS-based naming or grouping
+- Extract contextual metadata from filenames and folder names (e.g. location, event labels, date ranges)
 
 ---
 
