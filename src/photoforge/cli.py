@@ -3,58 +3,50 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from .scanner import scan_directory
+from .planner import plan_files
+from .reporter import render_console_report
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="photoforge",
-        description=(
-            "Scan a directory of JPEG files, detect exact duplicates, and "
-            "generate a deterministic rename and organization plan."
-        ),
+        description="PhotoForge v0.1 - deterministic dry-run photo deduplication",
     )
-
     parser.add_argument(
         "input_path",
-        type=Path,
-        help="Path to the root directory to scan recursively.",
+        metavar="input_path",
+        help="Path to the directory to scan",
     )
-
-    parser.add_argument(
-        "--apply",
-        action="store_true",
-        help="Execute file rename/move operations. Default is dry-run.",
-    )
-
-    parser.add_argument(
-        "--output",
-        type=Path,
-        metavar="output_path",
-        help=(
-            "Target root directory for organized files. "
-            "If omitted, files are renamed in place."
-        ),
-    )
-
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help=(
-            "Output the execution report in JSON format in addition to "
-            "standard console output."
-        ),
-    )
-
     return parser
+
+
+def validate_input_path(raw_input_path: str) -> Path:
+    path = Path(raw_input_path).expanduser()
+
+    if not path.exists():
+        raise ValueError(f"Input path does not exist: {path}")
+
+    if not path.is_dir():
+        raise ValueError(f"Input path is not a directory: {path}")
+
+    return path.resolve()
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    # Placeholder behavior for scaffold phase
-    print(
-        f"[PHOTOFORGE] input_path={args.input_path} "
-        f"apply={args.apply} output={args.output} json={args.json}"
-    )
+    input_path = validate_input_path(args.input_path)
+
+    scan_result = scan_directory(input_path)
+    plan_result = plan_files(scan_result.records)
+    report = render_console_report(plan_result)
+
+    print(report)
 
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
