@@ -35,7 +35,7 @@ Nothing in this file should influence v0.1 implementation.
 - Duplicate reporting enhancements
 - Keep-best-file heuristics beyond size (e.g. prefer original filenames over copy variants such as “- Copy”, “(1)”)
 - Perceptual hashing (near-duplicate detection)
-- Same-photo-different-encoding detection
+- Same-photo-different-encoding detection (e.g. identical timestamp + similar size + EXIF-stripped variants)
 - Allow configurable priority rules (beyond timestamp) to select the best/canonical photo (e.g. resolution, file size, filename patterns, source preference)
 
 ---
