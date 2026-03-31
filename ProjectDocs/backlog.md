@@ -33,7 +33,7 @@ Nothing in this file should influence v0.1 implementation.
 
 - Optional duplicate deletion
 - Duplicate reporting enhancements
-- Keep-best-file heuristics beyond size
+- Keep-best-file heuristics beyond size (e.g. prefer non-copy filenames such as avoiding “- Copy”, “(1)”)
 - Perceptual hashing (near-duplicate detection)
 - Same-photo-different-encoding detection
 - Allow configurable priority rules (beyond timestamp) to select the best/canonical photo (e.g. resolution, file size, filename patterns, source preference)
