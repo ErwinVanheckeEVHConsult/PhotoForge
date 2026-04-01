@@ -43,12 +43,13 @@ def _resolve_target_path(
     source_path: Path,
     canonical_filename: str,
     timestamp_year: str,
+    timestamp_month: str,
     output_path: Path | None,
 ) -> Path:
     if output_path is None:
         return source_path.parent / canonical_filename
 
-    return output_path / timestamp_year / canonical_filename
+    return output_path / timestamp_year / timestamp_month / canonical_filename
 
 
 def _classify_action(
@@ -79,12 +80,14 @@ def plan_files(
         canonical_record = _select_canonical(group_records)
         canonical_filename = _build_canonical_filename(canonical_record)
         timestamp_year = canonical_record.timestamp.strftime("%Y")
+        timestamp_month = canonical_record.timestamp.strftime("%m")
         duplicate_group_size = len(group_records)
-
+        
         canonical_target_path = _resolve_target_path(
             source_path=canonical_record.path,
             canonical_filename=canonical_filename,
             timestamp_year=timestamp_year,
+            timestamp_month=timestamp_month,
             output_path=output_path,
         )
         canonical_action_status = _classify_action(
