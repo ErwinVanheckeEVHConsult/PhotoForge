@@ -13,7 +13,7 @@ Versions follow semantic versioning where applicable.
 - 
 
 ### Changed
-- 
+- Output directory structure now includes month-level folders when using --output (<year>/<month>/<filename>)- Output directory structure 
 
 ### Fixed
 - 
