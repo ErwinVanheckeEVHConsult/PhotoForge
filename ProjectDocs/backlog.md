@@ -66,6 +66,7 @@ Nothing in this file should influence v0.1 implementation.
 - Dry-run diff-style output
 - Interactive confirmation mode
 - Better error reporting formatting
+- Include timestamp source in planned rename output
 
 ---
 
