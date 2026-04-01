@@ -42,7 +42,7 @@ Nothing in this file should influence v0.1 implementation.
 
 ## Naming & Organization
 
-- Custom filename templates
+- Custom filename templates and output directory root
 - Month/day folder structure
 - Folder-by-camera model
 - Folder-by-event or grouping
