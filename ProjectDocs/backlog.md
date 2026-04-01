@@ -112,3 +112,4 @@ Nothing in this file should influence v0.1 implementation.
 
 - v0.1 scope is intentionally minimal and deterministic
 - All items here are out of scope for v0.1 unless explicitly promoted
+- v0.1 released to alpha1
