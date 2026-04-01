@@ -6,17 +6,23 @@ from pathlib import Path
 from .scanner import scan_directory
 from .planner import plan_files
 from .reporter import render_console_report
+from .operations import apply_actions
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="photoforge",
-        description="PhotoForge v0.1 - deterministic dry-run photo deduplication",
+        description="PhotoForge v0.1 - deterministic photo deduplication",
     )
     parser.add_argument(
         "input_path",
         metavar="input_path",
         help="Path to the directory to scan",
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Execute planned filesystem changes",
     )
     return parser
 
@@ -43,7 +49,11 @@ def main(argv: list[str] | None = None) -> int:
     plan_result = plan_files(scan_result.records)
     report = render_console_report(plan_result)
 
+    # Must always print report before any filesystem changes
     print(report)
+
+    if args.apply:
+        apply_actions(plan_result.actions)
 
     return 0
 
