@@ -20,6 +20,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the directory to scan",
     )
     parser.add_argument(
+        "--output",
+        metavar="output_path",
+        help="Path to the output directory root",
+    )
+    parser.add_argument(
         "--apply",
         action="store_true",
         help="Execute planned filesystem changes",
@@ -39,14 +44,27 @@ def validate_input_path(raw_input_path: str) -> Path:
     return path.resolve()
 
 
+def validate_output_path(raw_output_path: str) -> Path:
+    path = Path(raw_output_path).expanduser()
+    resolved = path.resolve(strict=False)
+
+    if resolved.exists() and not resolved.is_dir():
+        raise ValueError(f"Output path is not a directory: {resolved}")
+
+    return resolved
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
     input_path = validate_input_path(args.input_path)
+    output_path = (
+        validate_output_path(args.output) if args.output is not None else None
+    )
 
     scan_result = scan_directory(input_path)
-    plan_result = plan_files(scan_result.records)
+    plan_result = plan_files(scan_result.records, output_path=output_path)
     report = render_console_report(plan_result)
 
     # Must always print report before any filesystem changes
