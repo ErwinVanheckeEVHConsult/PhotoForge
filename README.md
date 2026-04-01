@@ -23,7 +23,7 @@ Current scaffold includes:
 - CLI entry point
 - argument parsing only
 
-Business logic is intentionally not implemented yet.
+Core v0.1 functionality is implemented, including scanning, planning, reporting, and apply mode.
 
 ## Supported file formats
 
@@ -81,6 +81,27 @@ Combine flags:
 ```bash
 photoforge /path/to/input --apply --output /path/to/output --json
 ```
+
+## ⚠️ Safety Warning (Beta)
+
+PhotoForge can perform real filesystem modifications when used with `--apply`.
+
+Before using `--apply`, you **must understand the following**:
+
+- Files may be **renamed and/or moved** based on the generated plan  
+- Operations are executed **exactly as planned**, without additional prompts  
+- **No files are overwritten**, but existing files may cause collisions and skipped actions  
+- Duplicate files are **not deleted**, but only canonical files are acted upon  
+- The tool assumes **full control over the target paths** it generates  
+
+### Recommendations
+
+- Always run a **dry-run first** and review the report carefully  
+- Test on a **copy of your data**, not your primary photo library  
+- Verify results on a **small subset** before scaling up  
+- Use backups or versioning if operating on important data  
+
+> This is a beta release. Behavior is deterministic but not yet hardened against all real-world edge cases.
 
 ## Notes
 
