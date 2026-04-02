@@ -79,6 +79,7 @@ Nothing in this file should influence v0.1 implementation.
 - Keyword/tag extraction
 - GPS-based naming or grouping
 - Extract contextual metadata from filenames and folder names (e.g. location, event labels)
+- Infer batch context from mixed metadata sources (e.g. GPS, timezone, camera model, filename/folder hints)
 
 ---
 
