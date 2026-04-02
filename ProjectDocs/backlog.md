@@ -68,6 +68,7 @@ Nothing in this file should influence v0.1 implementation.
 - Interactive confirmation mode
 - Better error reporting formatting
 - Include timestamp source in planned rename output
+- Improve console output usability for large scans
 
 ---
 
