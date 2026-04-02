@@ -56,6 +56,7 @@ Nothing in this file should influence v0.1 implementation.
 - Incremental scanning (cache results)
 - Large library optimization
 - I/O performance improvements
+- Pre-group by file size before full hashing to avoid hashing obvious non-duplicates
 
 ---
 
