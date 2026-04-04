@@ -211,3 +211,4 @@ __marimo__/
 test_*.py
 testdata/ 
 test_*.txt
+report.txt

@@ -1,111 +1,168 @@
 # PhotoForge
 
-PhotoForge is a deterministic command-line tool for scanning JPEG files, extracting timestamps from EXIF metadata, detecting exact duplicates using SHA-256, and generating a canonical rename and organization plan.
+PhotoForge is a deterministic command-line tool for scanning JPEG files, extracting timestamps from EXIF metadata, detecting exact duplicates using SHA-256, and generating a canonical rename plan.
 
-Version `0.0.1` is a packaging scaffold aligned with the locked v0.1 CLI shape.
+The tool is designed to be predictable, safe, and reproducible, with a strict dry-run-first workflow.
+
+---
+
+## Version
+
+Current version: v0.1.0-alpha1
+
+This release establishes the core deterministic pipeline:
+- scanning
+- timestamp extraction
+- hashing
+- duplicate grouping
+- canonical selection
+- planned filesystem operations
+
+---
 
 ## Specification
 
-See [SPEC.md](./SPEC.md) for the locked v0.1 behavior contract.
+See SPEC.md for the locked v0.1 behavior contract.
 
-## Scope
+All behavior in this version is fully deterministic and defined there.
 
-PhotoForge v0.1 is defined around the following command shape:
+---
 
-```bash
-photoforge <input_path> [--apply] [--output <output_path>] [--json]
+## Scope (v0.1)
+
+PhotoForge v0.1 supports the following command:
+
+```
+photoforge <input_path> [--apply]
 ```
 
-Current scaffold includes:
+### Behavior
 
-- installable Python package
-- `src/` layout
-- CLI entry point
-- argument parsing only
+- Scans a directory recursively
+- Processes JPEG files only (.jpg, .jpeg)
+- Extracts timestamps using a strict EXIF fallback chain
+- Computes SHA-256 hashes for exact duplicate detection
+- Selects a single canonical file per duplicate group
+- Generates a deterministic rename plan
 
-Core v0.1 functionality is implemented, including scanning, planning, reporting, and apply mode.
-
-## Supported file formats
-
-Planned v0.1 support is limited to JPEG files only:
-
-- `.jpg`
-- `.jpeg`
+---
 
 ## Installation
 
-```bash
+```
 pip install .
 ```
 
-For editable development install:
+For development:
 
-```bash
+```
 pip install -e .
 ```
 
+---
+
 ## Usage
 
-Show help:
+### Show help
 
-```bash
+```
 photoforge --help
 ```
 
-Dry-run against an input directory:
+### Dry-run (default)
 
-```bash
+```
 photoforge /path/to/input
 ```
 
-Apply changes:
+- No filesystem changes are made
+- A full plan is printed to stdout
 
-```bash
+### Apply changes
+
+```
 photoforge /path/to/input --apply
 ```
 
-Write organized output to a target root:
+- Executes the planned rename/move operations
+- Only canonical files are affected
+- Duplicate files remain untouched
 
-```bash
-photoforge /path/to/input --output /path/to/output
-```
+---
 
-Emit JSON report in addition to standard console output:
+## Output
 
-```bash
-photoforge /path/to/input --json
-```
+The tool prints a deterministic console report including:
 
-Combine flags:
+- total files processed
+- number of duplicate groups
+- total duplicates
+- planned actions:
+  - rename
+  - skip
+  - collision
 
-```bash
-photoforge /path/to/input --apply --output /path/to/output --json
-```
+No other output formats are supported in v0.1.
 
-## ⚠️ Safety Warning (Beta)
+---
 
-PhotoForge can perform real filesystem modifications when used with `--apply`.
+## Supported File Formats
 
-Before using `--apply`, you **must understand the following**:
+- .jpg
+- .jpeg
 
-- Files may be **renamed and/or moved** based on the generated plan  
-- Operations are executed **exactly as planned**, without additional prompts  
-- **No files are overwritten**, but existing files may cause collisions and skipped actions  
-- Duplicate files are **not deleted**, but only canonical files are acted upon  
-- The tool assumes **full control over the target paths** it generates  
+---
 
-### Recommendations
+## Safety Model
 
-- Always run a **dry-run first** and review the report carefully  
-- Test on a **copy of your data**, not your primary photo library  
-- Verify results on a **small subset** before scaling up  
-- Use backups or versioning if operating on important data  
+- Dry-run is the default mode
+- No changes occur unless --apply is provided
+- Files are never overwritten
+- Collisions are detected and skipped
+- Only canonical files are modified
+- All operations are precomputed and visible before execution
 
-> This is a beta release. Behavior is deterministic but not yet hardened against all real-world edge cases.
+---
+
+## ⚠️ Safety Warning
+
+When using --apply, PhotoForge performs real filesystem changes.
+
+Before applying:
+
+- Always run a dry-run first
+- Review the planned actions carefully
+- Test on a small subset of files
+- Use backups for important data
+
+This is an alpha release. Behavior is deterministic but not yet hardened against all edge cases.
+
+---
+
+## Design Principles
+
+- Deterministic behavior (same input → same output)
+- No hidden heuristics
+- No implicit decisions
+- Strict separation between planning and execution
+- Fail-safe defaults
+
+---
+
+## Roadmap (Post v0.1)
+
+Planned future capabilities include:
+
+- JSON output mode (--json)
+- Custom output directory (--output)
+- Extended file format support (PNG, HEIC, RAW, video)
+- Advanced duplicate detection (perceptual hashing)
+- Metadata-based organization (camera, location, events)
+
+---
 
 ## Notes
 
-- Dry-run is the default mode
-- `--apply` enables filesystem changes
-- `--output` selects a target root for organized files
-- `--json` enables JSON report output in addition to standard console output
+- This release focuses on a minimal, reliable core
+- All additional features are deferred to future versions
+- Backward compatibility will be preserved as the CLI evolves
