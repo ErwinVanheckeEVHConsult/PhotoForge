@@ -51,15 +51,16 @@ def render_console_report(plan_result: PlanResult) -> str:
     lines.append("")
     lines.append("Planned actions")
 
-    actions = tuple(plan_result.actions)
-    if not actions:
+    canonical_records = [record for record in plan_result.records if record.canonical]
+    if not canonical_records:
         lines.append("  None")
         return "\n".join(lines)
 
-    for action in actions:
-        lines.append(f"  [{action.action}]")
-        lines.append(f"    source: {action.source_path}")
-        lines.append(f"    target: {action.target_path}")
+    for record in canonical_records:
+        lines.append(f"  [{record.action_status}]")
+        lines.append(f"    source: {record.path}")
+        lines.append(f"    target: {record.target_path}")
+        lines.append(f"    timestamp source: {record.timestamp_source}")
 
     return "\n".join(lines)
 
