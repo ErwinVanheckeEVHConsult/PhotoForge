@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .scanner import scan_directory
-from .planner import plan_files
-from .reporter import render_console_report
 from .operations import apply_actions
+from .planner import plan_files
+from .reporter import render_console_report, render_json_report
+from .scanner import scan_directory
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--output",
         metavar="output_path",
         help="Path to the output directory root",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render deterministic JSON output",
     )
     parser.add_argument(
         "--apply",
@@ -65,7 +70,11 @@ def main(argv: list[str] | None = None) -> int:
 
     scan_result = scan_directory(input_path)
     plan_result = plan_files(scan_result.records, output_path=output_path)
-    report = render_console_report(plan_result)
+
+    if args.json:
+        report = render_json_report(plan_result)
+    else:
+        report = render_console_report(plan_result)
 
     # Must always print report before any filesystem changes
     print(report)
