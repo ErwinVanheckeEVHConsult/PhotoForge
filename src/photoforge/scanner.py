@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
-import os
 
 from .exif import extract_timestamp
 from .hashing import compute_sha256
@@ -87,53 +87,49 @@ def scan_directory(input_path: Path) -> ScanResult:
         try:
             size, mtime_timestamp = get_file_size_and_mtime(path)
         except OSError as exc:
-            skipped.append(SkippedFile(path=path, reason="metadata_unreadable"))
-            issues.append(
-                ScanIssue(
-                    path=path,
-                    severity="error",
-                    code="metadata_unreadable",
-                    message=str(exc),
-                )
+            _record_corrupt_file(
+                skipped=skipped,
+                issues=issues,
+                path=path,
+                reason="corrupt_metadata_unreadable",
+                code="corrupt_metadata_unreadable",
+                message=str(exc),
             )
             continue
 
         try:
             timestamp, timestamp_source = extract_timestamp(path, mtime_timestamp)
         except Exception as exc:
-            skipped.append(SkippedFile(path=path, reason="timestamp_unresolved"))
-            issues.append(
-                ScanIssue(
-                    path=path,
-                    severity="error",
-                    code="timestamp_unresolved",
-                    message=str(exc),
-                )
+            _record_corrupt_file(
+                skipped=skipped,
+                issues=issues,
+                path=path,
+                reason="corrupt_timestamp_unresolved",
+                code="corrupt_timestamp_unresolved",
+                message=str(exc),
             )
             continue
 
         try:
             sha256 = compute_sha256(path)
         except OSError as exc:
-            skipped.append(SkippedFile(path=path, reason="hash_failed"))
-            issues.append(
-                ScanIssue(
-                    path=path,
-                    severity="error",
-                    code="file_unreadable",
-                    message=str(exc),
-                )
+            _record_corrupt_file(
+                skipped=skipped,
+                issues=issues,
+                path=path,
+                reason="corrupt_file_unreadable",
+                code="corrupt_file_unreadable",
+                message=str(exc),
             )
             continue
         except Exception as exc:
-            skipped.append(SkippedFile(path=path, reason="hash_failed"))
-            issues.append(
-                ScanIssue(
-                    path=path,
-                    severity="error",
-                    code="hash_failed",
-                    message=str(exc),
-                )
+            _record_corrupt_file(
+                skipped=skipped,
+                issues=issues,
+                path=path,
+                reason="corrupt_hash_failed",
+                code="corrupt_hash_failed",
+                message=str(exc),
             )
             continue
 
@@ -154,6 +150,25 @@ def scan_directory(input_path: Path) -> ScanResult:
         issues=tuple(_sorted_issues(issues)),
         total_entries_seen=len(discovered_paths),
         supported_files_processed=len(records),
+    )
+
+
+def _record_corrupt_file(
+    skipped: list[SkippedFile],
+    issues: list[ScanIssue],
+    path: Path,
+    reason: str,
+    code: str,
+    message: str,
+) -> None:
+    skipped.append(SkippedFile(path=path, reason=reason))
+    issues.append(
+        ScanIssue(
+            path=path,
+            severity="error",
+            code=code,
+            message=message,
+        )
     )
 
 
