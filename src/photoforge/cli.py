@@ -7,12 +7,13 @@ from .operations import apply_actions
 from .planner import plan_files
 from .reporter import render_console_report, render_json_report
 from .scanner import scan_directory
+from .model import CorruptFile
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="photoforge",
-        description="PhotoForge v0.1 - deterministic photo deduplication",
+        description="PhotoForge v0.3 - deterministic photo deduplication",
     )
     parser.add_argument(
         "input_path",
@@ -69,7 +70,18 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     scan_result = scan_directory(input_path)
-    plan_result = plan_files(scan_result.records, output_path=output_path)
+    
+    corrupt_files = [
+        CorruptFile(path=s.path, error_type=s.reason)
+        for s in scan_result.skipped
+        if s.reason.startswith("corrupt_")
+    ]
+
+    plan_result = plan_files(
+        scan_result.records,
+        output_path=output_path,
+        corrupt_files=corrupt_files,
+    )
 
     if args.json:
         report = render_json_report(plan_result)
