@@ -91,6 +91,7 @@ Backlog hygiene rules:
 - Extract metadata from folder names
 - Infer batch context from metadata sources
 - Detect, report and handle corrupt files
+- Expose EXIF diagnostics (missing, unreadable, invalid fields)
 
 ---
 
