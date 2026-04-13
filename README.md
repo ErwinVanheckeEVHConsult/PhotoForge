@@ -23,8 +23,9 @@ This release establishes the core deterministic pipeline:
 
 ## Specification
 
-See SPEC_v0.1.md for the v0.1 behavior contract.
-See SPEC.md for the current (v0.2) behavior.
+See ./SPEC_v0.1.md for the v0.1 behavior contract.
+See ./SPEC_v0.2.md for the v0.2 behavior contract.
+See SPEC.md for the current (v0.3) behavior.
 
 All behavior in this version is fully deterministic and defined there.
 

@@ -23,11 +23,11 @@ It can optionally apply the plan through safe file renaming and moving operation
 
 ### Command
 
-photoforge <input_path> [--apply]
+`photoforge <input_path> [--apply]`
 
 ### Arguments
 
-<input_path> (required)  
+`<input_path>` (required)  
 Path to the root directory to scan recursively.
 
 ### Flags
@@ -35,13 +35,6 @@ Path to the root directory to scan recursively.
 --apply  
 Executes file rename/move operations.  
 If absent, runs in dry-run mode (default).
-
---output <output_path>  
-Target root directory for organized files.  
-If not provided, files are renamed in place.
-
---json  
-Outputs the execution report in JSON format in addition to standard console output.
 
 ---
 
@@ -136,15 +129,8 @@ Example:
 
 ## 10. Target Path Resolution
 
-If --output is not specified:
-
-- Files are renamed in place  
-
-If --output is specified:
-
-- Files are moved to:
-
-`<output_path>/<YYYY>/<filename>`
+- Files are always renamed in place  
+- No alternative output directory is supported in v0.1
 
 ---
 
