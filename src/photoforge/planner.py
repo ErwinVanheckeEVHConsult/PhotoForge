@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable
 
-from .model import FileRecord, PlanResult, PlannedAction, PlannedRecord
+from .model import FileRecord, PlanResult, PlannedAction, PlannedRecord, CorruptFile
 
 
 def _sorted_records(records: Iterable[FileRecord]) -> list[FileRecord]:
@@ -70,6 +70,7 @@ def _classify_action(
 def plan_files(
     records: Iterable[FileRecord],
     output_path: Path | None = None,
+    corrupt_files: Iterable[CorruptFile] = (),
 ) -> PlanResult:
     sorted_records = _sorted_records(records)
     grouped_records = _group_by_sha256(sorted_records)
@@ -135,4 +136,7 @@ def plan_files(
     return PlanResult(
         records=tuple(planned_records),
         actions=tuple(planned_actions),
+        corrupt_files=tuple(sorted(
+            corrupt_files, key=lambda c: str(c.path)
+        )),
     )
