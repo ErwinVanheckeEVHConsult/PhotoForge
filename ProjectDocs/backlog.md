@@ -118,6 +118,7 @@ Backlog hygiene rules:
 - Test coverage expansion
 - Documentation for contributors
 - Versioned releases and changelog
+- Reusable project templates for planning, milestones, and releases
 
 ---
 
