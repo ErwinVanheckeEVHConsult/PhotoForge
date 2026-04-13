@@ -92,7 +92,7 @@ def render_json_report(plan_result: PlanResult) -> str:
 
 
 def _to_jsonable(value: Any) -> Any:
-    if is_dataclass(value):
+    if is_dataclass(value) and not isinstance(value, type):
         return {key: _to_jsonable(item) for key, item in asdict(value).items()}
 
     if isinstance(value, dict):
