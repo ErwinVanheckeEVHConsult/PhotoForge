@@ -10,19 +10,26 @@ Versions follow semantic versioning where applicable.
 ## [Unreleased]
 
 ### Added
-- 
+
+- Optional output directory support via --output
+- Deterministic JSON output mode via --json
+- Timestamp source included in console report output
 
 ### Changed
-- Output directory structure now includes month-level folders when using --output (<year>/<month>/<filename>)- Output directory structure 
+
+- Output directory structure when using --output now follows:
+  `<output>/<year>/<month>/<day>/<filename>`
 
 ### Fixed
-- 
+
+-
 
 ---
 
 ## [0.1.0-alpha1] - 2026-04-01
 
 ### Added
+
 - Initial implementation of PhotoForge
 - JPEG scanning with EXIF timestamp extraction
 - SHA-256 duplicate detection
@@ -33,5 +40,6 @@ Versions follow semantic versioning where applicable.
 - CLI interface
 
 ### Notes
+
 - First alpha release
 - Intended for testing and feedback

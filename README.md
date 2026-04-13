@@ -8,9 +8,10 @@ The tool is designed to be predictable, safe, and reproducible, with a strict dr
 
 ## Version
 
-Current version: v0.1.0-alpha1
+Current version: v0.2.0-alpha1
 
 This release establishes the core deterministic pipeline:
+
 - scanning
 - timestamp extraction
 - hashing
@@ -22,18 +23,19 @@ This release establishes the core deterministic pipeline:
 
 ## Specification
 
-See SPEC.md for the locked v0.1 behavior contract.
+See SPEC_v0.1.md for the v0.1 behavior contract.
+See SPEC.md for the current (v0.2) behavior.
 
 All behavior in this version is fully deterministic and defined there.
 
 ---
 
-## Scope (v0.1)
+## Scope (v0.2)
 
-PhotoForge v0.1 supports the following command:
+PhotoForge v0.2 supports the following command:
 
-```
-photoforge <input_path> [--apply]
+```bash
+photoforge <input_path> [--output <output_path>] [--json] [--apply]
 ```
 
 ### Behavior
@@ -49,13 +51,13 @@ photoforge <input_path> [--apply]
 
 ## Installation
 
-```
+```bash
 pip install .
 ```
 
 For development:
 
-```
+```bash
 pip install -e .
 ```
 
@@ -65,13 +67,13 @@ pip install -e .
 
 ### Show help
 
-```
+```bash
 photoforge --help
 ```
 
 ### Dry-run (default)
 
-```
+```bash
 photoforge /path/to/input
 ```
 
@@ -80,13 +82,25 @@ photoforge /path/to/input
 
 ### Apply changes
 
-```
+```bash
 photoforge /path/to/input --apply
 ```
 
 - Executes the planned rename/move operations
 - Only canonical files are affected
 - Duplicate files remain untouched
+
+### Output to structured directory
+
+```bash
+photoforge /path/to/input --output /path/to/output
+```
+
+### JSON Output
+
+```bash
+photoforge /path/to/input --json
+```
 
 ---
 
@@ -102,7 +116,10 @@ The tool prints a deterministic console report including:
   - skip
   - collision
 
-No other output formats are supported in v0.1.
+Output modes:
+
+- Default: deterministic human-readable console report
+- Optional: deterministic JSON output via --json
 
 ---
 
@@ -149,12 +166,10 @@ This is an alpha release. Behavior is deterministic but not yet hardened against
 
 ---
 
-## Roadmap (Post v0.1)
+## Roadmap (Post v0.2)
 
 Planned future capabilities include:
 
-- JSON output mode (--json)
-- Custom output directory (--output)
 - Extended file format support (PNG, HEIC, RAW, video)
 - Advanced duplicate detection (perceptual hashing)
 - Metadata-based organization (camera, location, events)

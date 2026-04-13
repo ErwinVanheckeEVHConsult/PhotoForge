@@ -1,10 +1,10 @@
-# PhotoForge v0.2 Specification
+# PhotoForge v0.1 Specification
 
 Status: LOCKED  
-Version: 0.2.0  
-Date: 2026-04-13  
+Version: 0.1.0  
+Date: 2026-03-29  
 
-This document defines the exact behavior of PhotoForge v0.2.  
+This document defines the exact behavior of PhotoForge v0.1.  
 All implementations must strictly follow this specification.  
 
 If behavior is not explicitly defined here, it is considered out of scope.
@@ -13,11 +13,9 @@ If behavior is not explicitly defined here, it is considered out of scope.
 
 ## 1. Overview
 
-PhotoForge v0.2 is a deterministic command-line tool that scans a directory of JPEG images, detects exact duplicates, and generates a canonical rename and organization plan based on EXIF timestamps and fixed rules.
+PhotoForge v0.1 is a deterministic command-line tool that scans a directory of JPEG images, detects exact duplicates, and generates a canonical rename and organization plan based on EXIF timestamps and fixed rules.
 
 It can optionally apply the plan through safe file renaming and moving operations.
-
-v0.2 extends v0.1 with deterministic output organization and deterministic reporting improvements.
 
 ---
 
@@ -25,27 +23,25 @@ v0.2 extends v0.1 with deterministic output organization and deterministic repor
 
 ### Command
 
-photoforge `<input_path> [--output <output_path>] [--json] [--apply]`
+photoforge <input_path> [--apply]
 
 ### Arguments
 
-`<input_path>` (required)  
+<input_path> (required)  
 Path to the root directory to scan recursively.
 
 ### Flags
 
-`--output <output_path>`  
-Target root directory for organized files.  
-If not provided, files are renamed in place.  
-If the path does not exist, it is allowed and will be created during apply.
-
-`--json`  
-Outputs the execution report in JSON format.  
-If present, console output is replaced by JSON output.
-
-`--apply`  
+--apply  
 Executes file rename/move operations.  
 If absent, runs in dry-run mode (default).
+
+--output <output_path>  
+Target root directory for organized files.  
+If not provided, files are renamed in place.
+
+--json  
+Outputs the execution report in JSON format in addition to standard console output.
 
 ---
 
@@ -148,15 +144,7 @@ If --output is specified:
 
 - Files are moved to:
 
-`<output_path>/<YYYY>/<MM>/<DD>/<filename>`
-
-Rules:
-
-- YYYY = four-digit year  
-- MM = two-digit month (01–12)  
-- DD = two-digit day (01–31)  
-- Values are derived from canonical timestamp  
-- No fallback or alternative structure is allowed  
+`<output_path>/<YYYY>/<filename>`
 
 ---
 
@@ -200,12 +188,14 @@ If target path already exists:
 
 Must include:
 
-- Total files processed  
+- Total files scanned  
+- Supported files processed  
+- Skipped files  
+- Errors  
 - Duplicate groups  
 - Duplicate files  
-- Planned actions (canonical files only)  
-- Target paths  
-- Timestamp source for each planned canonical action  
+- Planned renames/moves  
+- Collisions  
 
 ### JSON Output
 
@@ -219,14 +209,6 @@ Must include:
 - canonical flag  
 - target path  
 - action status  
-- timestamp  
-- timestamp_source  
-
-### Output Mode Rules
-
-- Default output is console format  
-- If --json is provided, only JSON output is produced  
-- No mixed output modes are allowed  
 
 ---
 
@@ -241,7 +223,7 @@ Must include:
 Behavior:
 
 - File skipped  
-- Issue recorded  
+- Warning recorded  
 - Processing continues  
 
 ### Fatal Errors
@@ -261,13 +243,11 @@ Behavior:
 - Duplicate grouping  
 - Deterministic canonical selection  
 - Canonical naming  
-- Year/month/day organization  
+- Year-based organization  
 - Dry-run mode  
 - Safe apply mode  
 - Collision handling  
-- Console reporting  
-- JSON reporting  
-- Timestamp source transparency  
+- Console and JSON reporting  
 
 ---
 
@@ -283,9 +263,7 @@ Behavior:
 - GUI  
 - AI features  
 - Cloud integration  
-- Custom naming templates  
-- Alternative folder structures  
-- User-defined rules  
+- Advanced organization rules  
 
 ---
 
@@ -297,7 +275,6 @@ For identical input:
 - Same grouping  
 - Same canonical selection  
 - Same filenames  
-- Same target paths  
 - Same output  
 
 No randomness allowed.
