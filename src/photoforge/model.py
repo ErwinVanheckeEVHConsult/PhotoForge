@@ -16,6 +16,12 @@ class FileRecord:
 
 
 @dataclass(frozen=True)
+class CorruptFile:
+    path: Path
+    error_type: str
+
+
+@dataclass(frozen=True)
 class PlannedRecord:
     path: Path
     duplicate_group_id: str
@@ -41,3 +47,4 @@ class PlannedAction:
 class PlanResult:
     records: tuple[PlannedRecord, ...]
     actions: tuple[PlannedAction, ...]
+    corrupt_files: tuple[CorruptFile, ...]
