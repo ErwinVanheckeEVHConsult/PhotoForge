@@ -12,15 +12,20 @@ from .model import PlanResult
 def build_summary(plan_result: PlanResult) -> dict[str, int]:
     records = tuple(plan_result.records)
     actions = tuple(plan_result.actions)
+    corrupt_files = tuple(plan_result.corrupt_files)
 
     total_files_processed = len(records)
-    duplicate_groups = sum(1 for record in records if record.canonical and record.duplicate_group_size > 1)
+    duplicate_groups = sum(
+        1 for record in records if record.canonical and record.duplicate_group_size > 1
+    )
     total_duplicates = sum(1 for record in records if not record.canonical)
 
     planned_renames = sum(1 for action in actions if action.action == "rename")
     planned_moves = sum(1 for action in actions if action.action == "move")
     planned_skips = sum(1 for action in actions if action.action == "skip")
     collisions = sum(1 for action in actions if action.action == "collision")
+
+    corrupt_file_count = len(corrupt_files)
 
     return {
         "total_files_processed": total_files_processed,
@@ -30,6 +35,7 @@ def build_summary(plan_result: PlanResult) -> dict[str, int]:
         "planned_moves": planned_moves,
         "planned_skips": planned_skips,
         "collisions": collisions,
+        "corrupt_file_count": corrupt_file_count,
     }
 
 
@@ -48,19 +54,29 @@ def render_console_report(plan_result: PlanResult) -> str:
     lines.append(f"  Planned moves: {summary['planned_moves']}")
     lines.append(f"  Planned skips: {summary['planned_skips']}")
     lines.append(f"  Collisions: {summary['collisions']}")
+    lines.append(f"  Corrupt files: {summary['corrupt_file_count']}")
     lines.append("")
     lines.append("Planned actions")
 
     canonical_records = [record for record in plan_result.records if record.canonical]
     if not canonical_records:
         lines.append("  None")
-        return "\n".join(lines)
+    else:
+        for record in canonical_records:
+            lines.append(f"  [{record.action_status}]")
+            lines.append(f"    source: {record.path}")
+            lines.append(f"    target: {record.target_path}")
+            lines.append(f"    timestamp source: {record.timestamp_source}")
 
-    for record in canonical_records:
-        lines.append(f"  [{record.action_status}]")
-        lines.append(f"    source: {record.path}")
-        lines.append(f"    target: {record.target_path}")
-        lines.append(f"    timestamp source: {record.timestamp_source}")
+    lines.append("")
+    lines.append("Corrupt files")
+
+    if not plan_result.corrupt_files:
+        lines.append("  None")
+    else:
+        for corrupt_file in plan_result.corrupt_files:
+            lines.append(f"  {corrupt_file.error_type}")
+            lines.append(f"    path: {corrupt_file.path}")
 
     return "\n".join(lines)
 
@@ -70,6 +86,7 @@ def render_json_report(plan_result: PlanResult) -> str:
         "summary": build_summary(plan_result),
         "records": [_to_jsonable(record) for record in plan_result.records],
         "actions": [_to_jsonable(action) for action in plan_result.actions],
+        "corrupt_files": [_to_jsonable(cf) for cf in plan_result.corrupt_files],
     }
     return json.dumps(payload, indent=2, sort_keys=True)
 
