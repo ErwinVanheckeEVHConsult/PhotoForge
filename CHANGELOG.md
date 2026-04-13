@@ -7,20 +7,43 @@ Versions follow semantic versioning where applicable.
 
 ---
 
-## [Unreleased]
+## [0.3.0-alpha1] - 2026-04-13
 
 ### Added
+
+- Deterministic corrupt file detection during scanning
+- Explicit corrupt file classification
+- Corrupt file propagation through planning pipeline
+- Corrupt file reporting in console output
+- Corrupt file reporting in JSON output
+
+### Changed
+
+- Summary now includes corrupt file count
+- Console output includes dedicated corrupt file section
+- JSON output includes corrupt_files collection
+
+### Notes
+
+- Corrupt files are excluded from duplicate grouping and planning
+- No filesystem operations are performed on corrupt files
+
+---
+
+## [0.2.0-alpha1] - 2026-04-13
+
+### Added v0.2
 
 - Optional output directory support via --output
 - Deterministic JSON output mode via --json
 - Timestamp source included in console report output
 
-### Changed
+### Changed v0.2
 
 - Output directory structure when using --output now follows:
   `<output>/<year>/<month>/<day>/<filename>`
 
-### Fixed
+### Fixed v0.2
 
 -
 
@@ -28,7 +51,7 @@ Versions follow semantic versioning where applicable.
 
 ## [0.1.0-alpha1] - 2026-04-01
 
-### Added
+### Added v0.1
 
 - Initial implementation of PhotoForge
 - JPEG scanning with EXIF timestamp extraction
@@ -39,7 +62,7 @@ Versions follow semantic versioning where applicable.
 - Apply mode (safe rename/move)
 - CLI interface
 
-### Notes
+### Notes v0.1
 
 - First alpha release
 - Intended for testing and feedback

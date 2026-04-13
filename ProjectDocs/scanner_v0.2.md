@@ -1,8 +1,8 @@
-# PhotoForge v0.3 — Scanner Pipeline Specification
+# PhotoForge v0.1 — Scanner Pipeline Specification
 
 ## Purpose
 
-The scanner pipeline is responsible for discovering files, enriching supported JPEG files into complete `FileRecord` objects, classifying corrupt files, and reporting skipped files and errors.
+The scanner pipeline is responsible for discovering files, enriching supported JPEG files into complete `FileRecord` objects, and reporting skipped files and errors.
 
 The scanner does **not**:
 
@@ -10,9 +10,8 @@ The scanner does **not**:
 - plan actions
 - infer duplicates
 - generate filenames
-- perform reporting
 
-It produces fully enriched, deterministic input for the planner and classifies files that cannot be processed.
+It produces fully enriched, deterministic input for the planner.
 
 ---
 
@@ -28,9 +27,8 @@ For a given input directory:
 6. Extract canonical timestamp (via EXIF fallback chain)
 7. Compute SHA-256 hash
 8. Construct `FileRecord`
-9. Classify corrupt files
-10. Record skipped files and issues
-11. Return scan result
+9. Record skipped files and errors
+10. Return scan result
 
 ---
 
@@ -63,13 +61,17 @@ discover_files(input_path: Path) -> list[Path]
 Behavior:
 
 - Recursively walk directory tree
-- Include all discovered filesystem entries
+- Include only:
+  - regular files
+- Exclude:
+  - symbolic links
+  - non-regular files
 - Normalize all paths to absolute `Path`
 - Sort lexicographically
 
 Output:
 
-→ deterministic list of all paths
+→ deterministic list of all files
 
 ---
 
@@ -127,7 +129,7 @@ Returns:
 
 Failure:
 
-- unreadable metadata → **corrupt file classification**
+- unreadable metadata → **error + skipped**
 
 ---
 
@@ -199,7 +201,7 @@ short_hash = sha256[:8]
 
 Failure:
 
-- hashing failure → **corrupt file classification**
+- hashing failure → **error + skipped**
 
 ---
 
@@ -220,47 +222,7 @@ No partial records are allowed.
 
 ---
 
-### 9. Corrupt File Classification (v0.3)
-
-A file is classified as **corrupt** if it cannot be fully processed through the pipeline.
-
-Corrupt conditions include:
-
-- metadata cannot be read
-- timestamp extraction fails
-- file cannot be read
-- hashing fails
-
-Representation:
-
-- `SkippedFile.reason` must start with `"corrupt_"`
-- `ScanIssue` must be recorded with:
-  - `severity="error"`
-  - deterministic `code`
-
-Standard corrupt reason values:
-
-- `corrupt_metadata_unreadable`
-- `corrupt_timestamp_unresolved`
-- `corrupt_file_unreadable`
-- `corrupt_hash_failed`
-
-Rules:
-
-- corrupt classification must be deterministic
-- same file must always produce the same classification
-- no recovery or retry logic is allowed
-
-Behavior:
-
-- do not create `FileRecord`
-- record `SkippedFile`
-- record `ScanIssue`
-- continue processing
-
----
-
-### 10. Error Handling
+### 9. Error Handling
 
 #### Fatal Errors (abort)
 
@@ -274,17 +236,16 @@ Behavior:
 
 Continue scanning:
 
-- metadata unreadable → corrupt
-- timestamp unresolved → corrupt
-- hashing failure → corrupt
-- file unreadable → corrupt
+- metadata unreadable
+- timestamp cannot be resolved
+- hashing failure
+- file cannot be opened
 
 Behavior:
 
 - do not create `FileRecord`
-- classify as corrupt
-- record `SkippedFile`
-- record `ScanIssue`
+- add `SkippedFile`
+- add `ScanIssue(severity="error")`
 - continue
 
 ---
@@ -294,6 +255,8 @@ Behavior:
 - missing EXIF → not an error
 - invalid EXIF → not an error
 - fallback to mtime → valid
+
+No warnings required in v0.1.
 
 ---
 
@@ -324,22 +287,16 @@ class SkippedFile:
 
 Reason values:
 
-Non-corrupt:
-
 - `unsupported_extension`
 - `symlink`
 - `not_regular_file`
-
-Corrupt:
-
-- `corrupt_metadata_unreadable`
-- `corrupt_timestamp_unresolved`
-- `corrupt_file_unreadable`
-- `corrupt_hash_failed`
+- `metadata_unreadable`
+- `timestamp_unresolved`
+- `hash_failed`
 
 ---
 
-### Issues
+### Issues (Errors Only in v0.1)
 
 ~~~python
 @dataclass(frozen=True)
@@ -350,12 +307,11 @@ class ScanIssue:
     message: str
 ~~~
 
-Corrupt-related codes:
+Examples:
 
-- `corrupt_metadata_unreadable`
-- `corrupt_timestamp_unresolved`
-- `corrupt_file_unreadable`
-- `corrupt_hash_failed`
+- `metadata_unreadable`
+- `hash_failed`
+- `file_unreadable`
 
 ---
 
@@ -392,7 +348,6 @@ class ScanResult:
 - metadata reading
 - calling EXIF + hashing
 - constructing `FileRecord`
-- classifying corrupt files
 - collecting diagnostics
 
 ---
@@ -412,19 +367,6 @@ class ScanResult:
 
 ---
 
-## v0.3 Extension
-
-Corrupt files are:
-
-- explicitly classified during scanning
-- excluded from `FileRecord` output
-- propagated through the planning pipeline
-- reported in final output
-
-The scanner itself does not perform reporting.
-
----
-
 ## Final Contract
 
 `scan_directory(input_path)` must:
@@ -433,12 +375,12 @@ The scanner itself does not perform reporting.
 2. discover all files
 3. filter supported JPEG files
 4. enrich valid files into complete `FileRecord`
-5. classify corrupt files
-6. collect skipped + issues
-7. return deterministic `ScanResult`
+5. collect skipped + errors
+6. return deterministic `ScanResult`
 
 Only fully valid `FileRecord` objects are passed to the planner.
 
-No exceptions.  
-No ambiguity.  
+No exceptions.
+No ambiguity.
 No partial data.
+

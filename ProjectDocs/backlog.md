@@ -42,8 +42,7 @@ Backlog hygiene rules:
 - Optional duplicate deletion
 - Duplicate reporting enhancements
 - Perceptual hashing (near-duplicate detection)
-- Allow configurable priority rules (beyond timestamp) to select the best/canonical photo (e.g. resolution, file size, filename patterns, source preference)
-- Keep-best-file heuristics beyond size
+- Configurable canonical selection rules (beyond timestamp, size, filename patterns, source preference)
 - Prefer original filenames over copy variants (e.g. “- Copy”, “(1)”)
 - Detect same-photo-different-encoding cases
 
@@ -76,8 +75,7 @@ Backlog hygiene rules:
 - Dry-run diff-style output
 - Interactive confirmation mode
 - Better error reporting formatting
-- Improve console output readability for large scans
-- Improve console output navigation for large scans
+- Improve console output usability for large scans
 
 ---
 
@@ -90,7 +88,7 @@ Backlog hygiene rules:
 - Extract metadata from filenames
 - Extract metadata from folder names
 - Infer batch context from metadata sources
-- Detect, report and handle corrupt files
+- Handling strategies for corrupt files
 - Expose EXIF diagnostics (missing, unreadable, invalid fields)
 
 ---

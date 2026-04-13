@@ -43,7 +43,7 @@ def render_console_report(plan_result: PlanResult) -> str:
     summary = build_summary(plan_result)
     lines: list[str] = []
 
-    lines.append("PhotoForge v0.1")
+    lines.append("PhotoForge v0.3")
     lines.append("Mode: dry-run")
     lines.append("")
     lines.append("Summary")

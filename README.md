@@ -8,7 +8,7 @@ The tool is designed to be predictable, safe, and reproducible, with a strict dr
 
 ## Version
 
-Current version: v0.2.0-alpha1
+Current version: v0.3.0-alpha1
 
 This release establishes the core deterministic pipeline:
 
@@ -31,9 +31,9 @@ All behavior in this version is fully deterministic and defined there.
 
 ---
 
-## Scope (v0.2)
+## Scope (v0.3)
 
-PhotoForge v0.2 supports the following command:
+PhotoForge v0.3 supports the following command:
 
 ```bash
 photoforge <input_path> [--output <output_path>] [--json] [--apply]
@@ -47,6 +47,7 @@ photoforge <input_path> [--output <output_path>] [--json] [--apply]
 - Computes SHA-256 hashes for exact duplicate detection
 - Selects a single canonical file per duplicate group
 - Generates a deterministic rename plan
+- Detects and reports corrupt files (excluded from processing)
 
 ---
 
