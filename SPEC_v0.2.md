@@ -1,10 +1,10 @@
-# PhotoForge v0.3 Specification
+# PhotoForge v0.2 Specification
 
-Status: DRAFT  
-Version: 0.3.0  
+Status: LOCKED  
+Version: 0.2.0  
 Date: 2026-04-13  
 
-This document defines the exact behavior of PhotoForge v0.3.  
+This document defines the exact behavior of PhotoForge v0.2.  
 All implementations must strictly follow this specification.  
 
 If behavior is not explicitly defined here, it is considered out of scope.
@@ -13,11 +13,11 @@ If behavior is not explicitly defined here, it is considered out of scope.
 
 ## 1. Overview
 
-PhotoForge v0.3 is a deterministic command-line tool that scans a directory of JPEG images, detects exact duplicates, identifies corrupt files, and generates a canonical rename and organization plan based on EXIF timestamps and fixed rules.
+PhotoForge v0.2 is a deterministic command-line tool that scans a directory of JPEG images, detects exact duplicates, and generates a canonical rename and organization plan based on EXIF timestamps and fixed rules.
 
 It can optionally apply the plan through safe file renaming and moving operations.
 
-v0.3 extends v0.2 with deterministic corrupt file detection and reporting.
+v0.2 extends v0.1 with deterministic output organization and deterministic reporting improvements.
 
 ---
 
@@ -71,33 +71,11 @@ Rules:
 - Only regular files with supported extensions are processed  
 - Files that cannot be accessed are treated as errors  
 
-### Corrupt File Detection
-
-A file is classified as **corrupt** if it cannot be fully and successfully processed through the pipeline.
-
-A file is considered corrupt if any of the following occurs:
-
-- File cannot be read completely (I/O failure)
-- File cannot be fully hashed
-- File content is invalid for processing (e.g. malformed JPEG)
-
-Rules:
-
-- Corrupt classification must be deterministic  
-- Same file must always produce the same classification  
-- No heuristic or probabilistic detection is allowed  
-
-Behavior:
-
-- Corrupt files must not produce FileRecord objects  
-- Corrupt files must be tracked separately  
-- Processing must continue for all other files  
-
 ---
 
 ## 5. Timestamp Extraction Policy
 
-Each valid file must be assigned a single canonical timestamp using the following fallback chain:
+Each file must be assigned a single canonical timestamp using the following fallback chain:
 
 1. EXIF DateTimeOriginal  
 2. EXIF DateTimeDigitized  
@@ -121,8 +99,6 @@ Each valid file must be assigned a single canonical timestamp using the followin
 - Full 64-character hex digest is used internally  
 - Short hash = first 8 characters of SHA-256  
 
-Files that cannot be fully hashed must be classified as corrupt.
-
 ---
 
 ## 7. Duplicate Grouping
@@ -131,8 +107,6 @@ Files that cannot be fully hashed must be classified as corrupt.
 - Each unique hash defines one group  
 - Groups with more than one file are duplicate groups  
 - Groups with a single file are still processed but not considered duplicates  
-
-Corrupt files are excluded from grouping.
 
 ---
 
@@ -143,8 +117,6 @@ Exactly one file per group is selected using:
 1. Largest file size  
 2. If equal, prefer EXIF timestamp over mtime  
 3. If still equal, lexicographically smallest normalized absolute path  
-
-Corrupt files are never considered for canonical selection.
 
 ---
 
@@ -200,7 +172,6 @@ Rules:
 - Rename/move canonical files only  
 - Create target directories if needed  
 - Duplicate files are not modified  
-- Corrupt files are not modified  
 - No metadata changes  
 
 ---
@@ -235,14 +206,6 @@ Must include:
 - Planned actions (canonical files only)  
 - Target paths  
 - Timestamp source for each planned canonical action  
-- Total corrupt files  
-
-A dedicated section must list corrupt files including:
-
-- file path  
-- error type  
-
----
 
 ### JSON Output
 
@@ -258,18 +221,6 @@ Must include:
 - action status  
 - timestamp  
 - timestamp_source  
-- corrupt_files (list)  
-
-Each corrupt file entry must include:
-
-- path  
-- error_type  
-
-### Summary must include
-
-- corrupt_file_count  
-
----
 
 ### Output Mode Rules
 
@@ -289,7 +240,7 @@ Each corrupt file entry must include:
 
 Behavior:
 
-- File classified as corrupt if processing cannot complete  
+- File skipped  
 - Issue recorded  
 - Processing continues  
 
@@ -317,8 +268,6 @@ Behavior:
 - Console reporting  
 - JSON reporting  
 - Timestamp source transparency  
-- Corrupt file detection  
-- Corrupt file reporting  
 
 ---
 
@@ -337,7 +286,6 @@ Behavior:
 - Custom naming templates  
 - Alternative folder structures  
 - User-defined rules  
-- File repair or recovery  
 
 ---
 
@@ -350,7 +298,6 @@ For identical input:
 - Same canonical selection  
 - Same filenames  
 - Same target paths  
-- Same corrupt file classification  
 - Same output  
 
 No randomness allowed.
