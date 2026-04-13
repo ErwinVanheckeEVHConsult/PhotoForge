@@ -4,6 +4,13 @@ This file tracks ideas, improvements, and future work.
 
 Nothing in this file should influence v0.1 implementation.
 
+Backlog hygiene rules:
+
+- Keep entries minimal and one-line
+- Prefer extending existing entries over creating new ones
+- Avoid duplication across sections
+- Do not include implementation details or solutions
+
 ---
 
 ## Timestamp & EXIF
@@ -14,7 +21,8 @@ Nothing in this file should influence v0.1 implementation.
 - Detect inconsistent timestamp clusters
 - Optional interactive timestamp correction
 - Support EXIF timezone fields if present
-- Use filename and folder name patterns as fallback timestamp source when EXIF is missing
+- Use filename patterns as fallback timestamp source when EXIF is missing
+- Use folder name patterns as fallback timestamp source when EXIF is missing
 
 ---
 
@@ -33,20 +41,21 @@ Nothing in this file should influence v0.1 implementation.
 
 - Optional duplicate deletion
 - Duplicate reporting enhancements
-- Keep-best-file heuristics beyond size (e.g. prefer original filenames over copy variants such as “- Copy”, “(1)”)
 - Perceptual hashing (near-duplicate detection)
-- Same-photo-different-encoding detection (e.g. identical timestamp + similar size + EXIF-stripped variants)
 - Allow configurable priority rules (beyond timestamp) to select the best/canonical photo (e.g. resolution, file size, filename patterns, source preference)
+- Keep-best-file heuristics beyond size
+- Prefer original filenames over copy variants (e.g. “- Copy”, “(1)”)
+- Detect same-photo-different-encoding cases
 
 ---
 
 ## Naming & Organization
 
-- Custom filename templates and output directory root
-- Month/day folder structure
+- Custom filename templates
 - Folder-by-camera model
 - Folder-by-event or grouping
-- User-defined naming rules
+- User-defined filename rules
+- User-defined folder structure rules
 
 ---
 
@@ -67,8 +76,8 @@ Nothing in this file should influence v0.1 implementation.
 - Dry-run diff-style output
 - Interactive confirmation mode
 - Better error reporting formatting
-- Include timestamp source in planned rename output
-- Improve console output usability for large scans
+- Improve console output readability for large scans
+- Improve console output navigation for large scans
 
 ---
 
@@ -78,8 +87,10 @@ Nothing in this file should influence v0.1 implementation.
 - Metadata rewriting
 - Keyword/tag extraction
 - GPS-based naming or grouping
-- Extract contextual metadata from filenames and folder names (e.g. location, event labels)
-- Infer batch context from mixed metadata sources (e.g. GPS, timezone, camera model, filename/folder hints)
+- Extract metadata from filenames
+- Extract metadata from folder names
+- Infer batch context from metadata sources
+- Detect, report and handle corrupt files
 
 ---
 
