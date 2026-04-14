@@ -1,4 +1,4 @@
-# Milestone: ``<Title>``
+# Milestone — ``<version>-ms<nnn>`` — ``<short-title>``
 
 Starting milestone.
 
@@ -26,7 +26,7 @@ Define the exact objective of this milestone.
 
 ---
 
-## Delivrables
+## Deliverables
 
 - ``<Deliverable>`` (repeat as needed)
 

@@ -8,7 +8,7 @@ Starting planning proposal.
 
 - Previous versions are complete and released
 - All existing behavior is frozen and must not change
-- Scope must come strictly from backlog.md
+- Scope must come strictly from ProjectDocs/backlog.md
 - No changes to existing architecture unless explicitly required
 
 ---
@@ -58,7 +58,7 @@ Define the objective of this version in one clear, constrained statement.
 
 ## Acceptance Criteria
 
-- Scope strictly matches backlog items
+- Scope must come strictly from ProjectDocs/backlog.md
 - No unintended side effects on existing behavior
 - Deliverables are complete and minimal
 - Structure remains consistent with prior versions
