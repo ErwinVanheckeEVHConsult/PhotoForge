@@ -10,7 +10,13 @@ from .hashing import compute_sha256
 from .model import FileRecord
 
 
-SUPPORTED_EXTENSIONS = {".jpg", ".jpeg"}
+SUPPORTED_EXTENSIONS = {
+    ".jpg", ".jpeg",
+    ".png",
+    ".heic", ".heif",
+    ".cr2", ".nef", ".arw",
+    ".mp4", ".mov",
+}
 
 
 @dataclass(frozen=True)
