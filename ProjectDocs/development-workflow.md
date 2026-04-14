@@ -228,6 +228,58 @@ For each milestone:
 
 ---
 
+## Local Scaffolding Rules
+
+Pre-generated milestone and planning files may exist locally as scaffolding to support workflow efficiency.
+
+Rules:
+
+- Such files must not be considered authoritative until the corresponding milestone or step is explicitly started
+- A milestone is considered started only when:
+  - its milestone document is actively used
+  - its checklist is used for validation
+  - implementation work has begun
+- Pre-generated files must not influence scope, ordering, or implementation decisions
+- Pre-generated files must not be committed unless they belong to the currently active milestone or workflow step
+- Pre-generated files may be regenerated, modified, or discarded without constraint prior to milestone start
+
+The repository state must always reflect only active and completed work, not future intent.
+
+---
+
+## Milestone Start Definition
+
+A milestone is considered officially started when all of the following conditions are met:
+
+- The milestone document (`v<mmm>.<nnn>-ms<nnn>-<short-title>.md`) is fully defined, contains no placeholders, and is ready for implementation without further interpretation
+- The milestone checklist (`v<mmm>.<nnn>-ms<nnn>-checklist.md`) is created and ready for validation
+- The previous milestone has been:
+  - fully implemented
+  - fully validated
+  - committed with no remaining changes in the working tree
+- Implementation work for the milestone has begun (code or document changes directly related to the milestone)
+
+Rules:
+
+- The existence of pre-generated or placeholder milestone files does not constitute milestone start
+- A milestone must not be started implicitly or partially
+- Only one milestone may be active at any time
+- Work performed must correspond exclusively to the currently active milestone
+
+---
+
+## Milestone Completion Definition
+
+A milestone is complete when:
+
+- all checklist items are resolved
+- behavior matches specification
+- no unresolved validation issues or checklist items remain
+- all changes are committed
+- working tree is clean (no uncommitted or unrelated changes)
+
+---
+
 ## Summary
 
 The workflow enforces a strict sequence:
