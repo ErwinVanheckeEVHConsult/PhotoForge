@@ -1,4 +1,4 @@
-# Planning Proposal
+# Planning Proposal  — ``<version>``
 
 Starting planning proposal.
 
