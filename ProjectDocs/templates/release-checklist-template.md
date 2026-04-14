@@ -26,6 +26,8 @@
 ## Validation
 
 - ``<Validation step>`` (repeat as needed)
+- ``<Cross-document consistency check>`` (repeat as needed)
+- ``<Backlog cleanup verification>`` (repeat as needed)
 
 ---
 
