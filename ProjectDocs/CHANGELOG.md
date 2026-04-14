@@ -7,9 +7,32 @@ Versions follow semantic versioning where applicable.
 
 ---
 
+## [0.4.0-alpha1] - 2026-04-14
+
+### Added v0.4
+
+- Development workflow definition
+- Reusable templates for:
+  - planning proposals
+  - milestones
+  - milestone checklists
+  - release checklists
+  - changelog entries
+
+### Changed v0.4
+
+- Standardized project lifecycle (planning → milestones → validation → release)
+
+### Notes v0.4
+
+- No runtime behavior changes
+- This release introduces workflow and documentation only
+
+---
+
 ## [0.3.0-alpha1] - 2026-04-13
 
-### Added
+### Added v0.3
 
 - Deterministic corrupt file detection during scanning
 - Explicit corrupt file classification
@@ -17,13 +40,13 @@ Versions follow semantic versioning where applicable.
 - Corrupt file reporting in console output
 - Corrupt file reporting in JSON output
 
-### Changed
+### Changed v0.3
 
 - Summary now includes corrupt file count
 - Console output includes dedicated corrupt file section
 - JSON output includes corrupt_files collection
 
-### Notes
+### Notes v0.3
 
 - Corrupt files are excluded from duplicate grouping and planning
 - No filesystem operations are performed on corrupt files
