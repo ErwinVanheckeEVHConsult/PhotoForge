@@ -10,13 +10,18 @@ from .hashing import compute_sha256
 from .model import FileRecord
 
 
-SUPPORTED_EXTENSIONS = {
+PROCESSABLE_EXTENSIONS = {
     ".jpg", ".jpeg",
+}
+
+RECOGNIZED_EXTENSIONS = {
     ".png",
     ".heic", ".heif",
     ".cr2", ".nef", ".arw",
     ".mp4", ".mov",
 }
+
+SUPPORTED_EXTENSIONS = PROCESSABLE_EXTENSIONS | RECOGNIZED_EXTENSIONS
 
 
 @dataclass(frozen=True)
@@ -48,6 +53,14 @@ def normalize_path(path: Path) -> Path:
 
 def is_supported_file(path: Path) -> bool:
     return path.suffix.lower() in SUPPORTED_EXTENSIONS
+
+
+def is_processable_file(path: Path) -> bool:
+    return path.suffix.lower() in PROCESSABLE_EXTENSIONS
+
+
+def is_recognized_file(path: Path) -> bool:
+    return path.suffix.lower() in RECOGNIZED_EXTENSIONS
 
 
 def discover_files(input_path: Path) -> tuple[Path, ...]:
@@ -88,6 +101,10 @@ def scan_directory(input_path: Path) -> ScanResult:
 
         if not is_supported_file(path):
             skipped.append(SkippedFile(path=path, reason="unsupported_extension"))
+            continue
+
+        if is_recognized_file(path):
+            skipped.append(SkippedFile(path=path, reason="recognized_format_not_processable"))
             continue
 
         try:
