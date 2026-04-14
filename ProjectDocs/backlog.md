@@ -118,7 +118,10 @@ Backlog hygiene rules:
 - Test coverage expansion
 - Documentation for contributors
 - Versioned releases and changelog
-- Reusable project templates for planning, milestones, and releases
+- Add a scripted procedure to export and flatten project files for ChatGPT source uploads
+- Deterministically rename exported files to preserve scope in flat source contexts
+- Include docs, templates, specs, and source modules in the export bundle
+- Refresh ChatGPT source bundle after each validated milestone commit or release
 
 ---
 
