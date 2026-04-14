@@ -21,5 +21,12 @@ When using any template:
 
 - Templates are deterministic and minimal
 - Templates must not include placeholders requiring interpretation
+- Templates may use explicit placeholders (e.g. ``<Deliverable>``, ``<Added item>``)
+- Placeholders must:
+  - be concrete and unambiguous
+  - require direct substitution (no interpretation)
+  - prevent copy-paste reuse without modification
+  - not encode logic (e.g. "for each x")
+- Repetition must be expressed as "(repeat as needed)"
 - No structural modification when used
 - Templates define structure, not content
