@@ -212,3 +212,5 @@ test_*.py
 testdata/ 
 test_*.txt
 report.txt
+git-status.txt
+
