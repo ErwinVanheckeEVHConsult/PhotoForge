@@ -8,7 +8,7 @@ The tool is designed to be predictable, safe, and reproducible, with a strict dr
 
 ## Version
 
-Current version: v0.3.0-alpha1
+Current version: v0.4.0-alpha1
 
 This release establishes the core deterministic pipeline:
 
@@ -23,17 +23,17 @@ This release establishes the core deterministic pipeline:
 
 ## Specification
 
-See ./SPEC_v0.1.md for the v0.1 behavior contract.
-See ./SPEC_v0.2.md for the v0.2 behavior contract.
-See SPEC.md for the current (v0.3) behavior.
+- See ./SPEC_v0.1.md for the v0.1 behavior contract.
+- See ./SPEC_v0.2.md for the v0.2 behavior contract.
+- See ./SPEC.md for the current behavior.
 
-All behavior in this version is fully deterministic and defined there.
+All runtime behavior remains identical to v0.3 and is fully defined there.
 
 ---
 
-## Scope (v0.3)
+## Scope (v0.4)
 
-PhotoForge v0.3 supports the following command:
+PhotoForge v0.4 supports the following command:
 
 ```bash
 photoforge <input_path> [--output <output_path>] [--json] [--apply]
@@ -168,7 +168,7 @@ This is an alpha release. Behavior is deterministic but not yet hardened against
 
 ---
 
-## Roadmap (Post v0.2)
+## Roadmap (Future)
 
 Planned future capabilities include:
 
@@ -178,7 +178,21 @@ Planned future capabilities include:
 
 ---
 
-## Notes
+## v0.4 Notes
+
+v0.4 introduces no changes to runtime behavior.
+
+This release standardizes the development workflow through:
+
+- reusable templates
+- deterministic documentation structure
+- formalized release and validation process
+
+All runtime behavior remains identical to v0.3.
+
+---
+
+## v0.3 Notes
 
 - This release focuses on a minimal, reliable core
 - All additional features are deferred to future versions
