@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from .version import VERSION
 from .operations import apply_actions
 from .planner import plan_files
 from .reporter import render_console_report, render_json_report
@@ -13,7 +14,7 @@ from .model import CorruptFile
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="photoforge",
-        description="PhotoForge v0.3 - deterministic photo deduplication",
+        description=f"PhotoForge {VERSION} - deterministic photo deduplication",
     )
     parser.add_argument(
         "input_path",

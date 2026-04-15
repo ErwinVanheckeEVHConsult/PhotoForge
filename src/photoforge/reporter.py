@@ -4,9 +4,10 @@ import json
 from dataclasses import asdict, is_dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Sequence, cast
 
 from .model import PlanResult
+from .version import VERSION
 
 
 def build_summary(plan_result: PlanResult) -> dict[str, int]:
@@ -43,7 +44,7 @@ def render_console_report(plan_result: PlanResult) -> str:
     summary = build_summary(plan_result)
     lines: list[str] = []
 
-    lines.append("PhotoForge v0.3")
+    lines.append(f"PhotoForge {VERSION}")
     lines.append("Mode: dry-run")
     lines.append("")
     lines.append("Summary")
@@ -82,7 +83,7 @@ def render_console_report(plan_result: PlanResult) -> str:
 
 
 def render_json_report(plan_result: PlanResult) -> str:
-    payload = {
+    payload: dict[str, Any] = {
         "summary": build_summary(plan_result),
         "records": [_to_jsonable(record) for record in plan_result.records],
         "actions": [_to_jsonable(action) for action in plan_result.actions],
@@ -93,13 +94,16 @@ def render_json_report(plan_result: PlanResult) -> str:
 
 def _to_jsonable(value: Any) -> Any:
     if is_dataclass(value) and not isinstance(value, type):
-        return {key: _to_jsonable(item) for key, item in asdict(value).items()}
+        dataclass_dict = asdict(value)
+        return {key: _to_jsonable(item) for key, item in dataclass_dict.items()}
 
     if isinstance(value, dict):
-        return {str(key): _to_jsonable(item) for key, item in value.items()}
+        mapping_value = cast(Mapping[Any, Any], value)
+        return {str(key): _to_jsonable(item) for key, item in mapping_value.items()}
 
     if isinstance(value, (list, tuple)):
-        return [_to_jsonable(item) for item in value]
+        sequence_value = cast(Sequence[Any], value)
+        return [_to_jsonable(item) for item in sequence_value]
 
     if isinstance(value, Path):
         return str(value)
