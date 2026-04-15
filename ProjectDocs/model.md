@@ -78,7 +78,7 @@ class FileRecord:
     short_hash: str
 ```
 
-#### Field Semantics
+#### 1.1 Field Semantics
 
 - `path`
   - absolute normalized path to the source file
@@ -93,7 +93,7 @@ class FileRecord:
 - `short_hash`
   - first 8 characters of `sha256`
 
-#### Invariants
+#### 1.2 Invariants
 
 - `path` must be absolute
 - `size` must be non-negative
@@ -105,7 +105,7 @@ class FileRecord:
   - `exif_datetime`
   - `mtime`
 
-#### Responsibility Boundary
+#### 1.3 Responsibility Boundary
 
 Produced by:
 
@@ -141,27 +141,27 @@ class CorruptFile:
     error_type: str
 ```
 
-#### Field Semantics
+#### 2.1 Field Semantics
 
 - `path`
   - absolute normalized path to the corrupt file
 - `error_type`
   - deterministic classification of the failure
 
-#### Allowed `error_type` values (v0.3)
+#### 2.2 Allowed `error_type` values (v0.3)
 
 - `corrupt_metadata_unreadable`
 - `corrupt_timestamp_unresolved`
 - `corrupt_file_unreadable`
 - `corrupt_hash_failed`
 
-#### Invariants
+#### 2.3 Invariants
 
 - `path` must be absolute
 - `error_type` must be deterministic
 - the same file must not exist as both `FileRecord` and `CorruptFile`
 
-#### Responsibility Boundary
+#### 2.4 Responsibility Boundary
 
 Produced by:
 
@@ -205,7 +205,7 @@ class PlannedRecord:
     timestamp_source: str
 ```
 
-#### Field Semantics
+#### 3.1 Field Semantics
 
 - `path`
   - original source path of the valid file
@@ -230,7 +230,7 @@ class PlannedRecord:
 - `timestamp_source`
   - timestamp source copied from `FileRecord`
 
-#### Invariants
+#### 3.2 Invariants
 
 - `duplicate_group_id` must equal `sha256`
 - `duplicate_group_size` must be at least 1
@@ -246,7 +246,7 @@ class PlannedRecord:
   - `target_path` must be `None`
   - `action_status` must be `duplicate`
 
-#### Responsibility Boundary
+#### 3.4 Responsibility Boundary
 
 Produced by:
 
@@ -278,7 +278,7 @@ class PlannedAction:
     action: str
 ```
 
-#### Field Semantics
+#### 4.1 Field Semantics
 
 - `source_path`
   - original canonical file path
@@ -287,20 +287,20 @@ class PlannedAction:
 - `action`
   - exact planner action classification
 
-#### Allowed `action` values
+#### 4.2 Allowed `action` values
 
 - `rename`
 - `move`
 - `skip`
 - `collision`
 
-#### Invariants
+#### 4.3 Invariants
 
 - only canonical files may produce `PlannedAction`
 - `source_path` and `target_path` must be absolute
 - operations must not reinterpret planner intent
 
-#### Responsibility Boundary
+#### 4.4 Responsibility Boundary
 
 Produced by:
 
@@ -334,7 +334,7 @@ class PlanResult:
 
 All collections in model objects must be tuples to guarantee immutability.
 
-#### Field Semantics
+#### 5.1 Field Semantics
 
 - `records`
   - all valid files after planning
@@ -343,7 +343,7 @@ All collections in model objects must be tuples to guarantee immutability.
 - `corrupt_files`
   - all corrupt files propagated separately
 
-#### Invariants
+#### 5.2 Invariants
 
 - `records` must contain only valid-file planning output
 - `actions` must contain only canonical-file actions
@@ -351,7 +351,7 @@ All collections in model objects must be tuples to guarantee immutability.
 - corrupt files must not appear in `records`
 - corrupt files must not produce `actions`
 
-#### Responsibility Boundary
+#### 5.3 Responsibility Boundary
 
 Produced by:
 
@@ -361,6 +361,157 @@ Consumed by:
 
 - reporter
 - operations (actions only)
+
+---
+
+## 6. Contextual Grouping (v0.5)
+
+Contextual grouping is a structural model that represents a partition of `FileRecord` objects into groups based on contextual similarity.
+
+This model is fully deterministic and independent of grouping construction logic.
+
+---
+
+### Record Reference
+
+A contextual group references `FileRecord` objects indirectly using a stable identifier called `record_ref`.
+
+Definition:
+
+- `record_ref` is the normalized absolute file path represented as a string
+- `record_ref` is derived deterministically from `FileRecord.path`
+- `record_ref` uniquely identifies a `FileRecord` within a scan result
+
+Constraints:
+
+- must not depend on scan order
+- must not depend on object identity
+- must not require modification of `FileRecord`
+
+---
+
+### ContextualGroup
+
+A `ContextualGroup` is defined as:
+
+```python
+@dataclass(frozen=True)
+class ContextualGroup:
+    group_id: str
+    member_refs: tuple[str, ...]
+```
+
+Meaning:
+
+- `group_id` is the deterministic identifier of the group
+- `member_refs` is the complete ordered set of record references belonging to the group
+
+---
+
+### Group Identifier
+
+The `group_id` is defined as a deterministic identifier derived only from `member_refs`.
+
+Computation:
+
+- encode `member_refs` as a canonical JSON array of strings
+  - UTF-8 encoding
+  - no whitespace variation
+- compute the SHA-256 hash of the encoded value
+- represent the result as a hexadecimal string
+
+Properties:
+
+- deterministic
+- stable for identical `member_refs`
+- independent of external state
+- delimiter-safe and unambiguous
+
+---
+
+### ContextualGrouping
+
+A `ContextualGrouping` is defined as:
+
+```python
+@dataclass(frozen=True)
+class ContextualGrouping:
+    groups: tuple[ContextualGroup, ...]
+```
+
+Meaning:
+
+- `groups` is the complete ordered set of contextual groups
+
+---
+
+### Structural Invariants
+
+The contextual grouping model must satisfy the following constraints:
+
+Partition:
+
+- each `FileRecord` must belong to exactly one contextual group
+- no `FileRecord` may appear in multiple contextual groups
+
+Group constraints:
+
+- each group must contain at least one member
+- `member_refs` must be unique within a group
+- `member_refs` must be sorted lexicographically
+
+Grouping constraints:
+
+- groups must be sorted lexicographically by `group_id`
+- `group_id` must match the deterministic value computed from `member_refs`
+- a `record_ref` must not appear in more than one group
+
+---
+
+### Determinism
+
+The contextual grouping model is fully deterministic:
+
+- identical inputs produce identical group structures
+- no behavior depends on:
+  - scan order
+  - filesystem traversal
+  - environment
+  - external state
+
+---
+
+### Metadata Constraints
+
+Future grouping logic may only use the following metadata:
+
+- `timestamp`
+- `timestamp_source`
+
+No other metadata fields are allowed in this version.
+
+---
+
+### Scope
+
+This model defines structure only.
+
+It does not define:
+
+- grouping rules
+- grouping thresholds
+- grouping algorithms
+- grouping execution
+
+These are defined in later milestones.
+
+---
+
+### Empty Input
+
+If no `FileRecord` objects exist, the grouping is represented as:
+
+- an empty tuple of groups
 
 ---
 
