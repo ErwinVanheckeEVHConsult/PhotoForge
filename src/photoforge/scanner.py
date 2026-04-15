@@ -8,7 +8,7 @@ from typing import Iterable
 from .exif import extract_timestamp
 from .hashing import compute_sha256
 from .model import FileRecord
-
+from .metadata import normalize_metadata
 
 PROCESSABLE_EXTENSIONS = {
     ".jpg", ".jpeg",
@@ -121,7 +121,13 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            timestamp, timestamp_source = extract_timestamp(path, mtime_timestamp)
+            extracted_timestamp, extracted_timestamp_source = extract_timestamp(path, mtime_timestamp)
+
+            normalized_metadata = normalize_metadata(
+                extracted_timestamp,
+                extracted_timestamp_source,
+            )
+
         except Exception as exc:
             _record_corrupt_file(
                 skipped=skipped,
@@ -160,8 +166,8 @@ def scan_directory(input_path: Path) -> ScanResult:
             FileRecord(
                 path=path,
                 size=size,
-                timestamp=timestamp,
-                timestamp_source=timestamp_source,
+                timestamp=normalized_metadata.timestamp,
+                timestamp_source=normalized_metadata.timestamp_source,
                 sha256=sha256,
                 short_hash=sha256[:8],
             )
