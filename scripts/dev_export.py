@@ -50,6 +50,7 @@ def generate_git_status() -> None:
     output_lines.append("Staged changes:")
 
     if not staged:
+        output_lines.append("")
         output_lines.append("No staged changes")
     else:
         output_lines.extend(staged)
