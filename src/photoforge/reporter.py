@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence, cast
 
-from .model import PlanResult
+from .model import ContextualGrouping, PlanResult
 from .version import VERSION
 
 
@@ -40,7 +40,16 @@ def build_summary(plan_result: PlanResult) -> dict[str, int]:
     }
 
 
-def render_console_report(plan_result: PlanResult) -> str:
+def render_console_report(
+    plan_result: PlanResult,
+    contextual_grouping: ContextualGrouping | None = None,
+    include_context: bool = False,
+) -> str:
+    if include_context and contextual_grouping is None:
+        raise ValueError(
+            "contextual_grouping must be provided when include_context=True"
+        )
+
     summary = build_summary(plan_result)
     lines: list[str] = []
 
@@ -79,16 +88,50 @@ def render_console_report(plan_result: PlanResult) -> str:
             lines.append(f"  {corrupt_file.error_type}")
             lines.append(f"    path: {corrupt_file.path}")
 
+    if include_context:
+        assert contextual_grouping is not None
+
+        lines.append("")
+        lines.append("Contextual groups")
+
+        if not contextual_grouping.groups:
+            lines.append("  None")
+        else:
+            for group in contextual_grouping.groups:
+                lines.append(f"  {group.group_id}")
+                for record_ref in group.member_refs:
+                    lines.append(f"    {record_ref}")
+
     return "\n".join(lines)
 
 
-def render_json_report(plan_result: PlanResult) -> str:
+def render_json_report(
+    plan_result: PlanResult,
+    contextual_grouping: ContextualGrouping | None = None,
+    include_context: bool = False,
+) -> str:
+    if include_context and contextual_grouping is None:
+        raise ValueError(
+            "contextual_grouping must be provided when include_context=True"
+        )
+
     payload: dict[str, Any] = {
         "summary": build_summary(plan_result),
         "records": [_to_jsonable(record) for record in plan_result.records],
         "actions": [_to_jsonable(action) for action in plan_result.actions],
         "corrupt_files": [_to_jsonable(cf) for cf in plan_result.corrupt_files],
     }
+
+    if include_context:
+        assert contextual_grouping is not None
+        payload["contextual_groups"] = [
+            {
+                "group_id": group.group_id,
+                "member_refs": list(group.member_refs),
+            }
+            for group in contextual_grouping.groups
+        ]
+
     return json.dumps(payload, indent=2, sort_keys=True)
 
 

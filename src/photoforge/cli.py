@@ -36,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Execute planned filesystem changes",
     )
+    parser.add_argument(
+        "--context",
+        action="store_true",
+        help="Include contextual grouping output",
+    )
     return parser
 
 
@@ -78,17 +83,24 @@ def main(argv: list[str] | None = None) -> int:
         if s.reason.startswith("corrupt_")
     ]
 
-    plan_result, _ = run_pipeline(
+    plan_result, contextual_grouping = run_pipeline(
         input_path,
         output_path=output_path,
         corrupt_files=corrupt_files,
     )
 
     if args.json:
-        report = render_json_report(plan_result)
+        report = render_json_report(
+            plan_result,
+            contextual_grouping=contextual_grouping,
+            include_context=args.context,
+        )
     else:
-        report = render_console_report(plan_result)
-
+        report = render_console_report(
+            plan_result,
+            contextual_grouping=contextual_grouping,
+            include_context=args.context,
+        )
     # Must always print report before any filesystem changes
     print(report)
 
