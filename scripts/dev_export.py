@@ -7,18 +7,28 @@ TREE_OUTPUT = PROJECT_ROOT / "tree-src.txt"
 GIT_OUTPUT = PROJECT_ROOT / "git-status.txt"
 
 
-def generate_tree():
-    root = PROJECT_ROOT / "src" / "photoforge"
+def generate_tree() -> None:
+    root = PROJECT_ROOT / "src"
 
     lines: list[str] = []
 
-    for path in sorted(root.rglob("*"), key=lambda p: str(p).lower()):
-        if "__pycache__" in path.parts:
-            continue
+    def walk(directory: Path, depth: int) -> None:
+        entries = sorted(directory.iterdir(), key=lambda p: str(p).lower())
 
-        relative = path.relative_to(root)
-        indent = "    " * (len(relative.parts) - 1)
-        lines.append(f"{indent}{relative.name}")
+        for entry in entries:
+            if "__pycache__" in entry.parts:
+                continue
+            
+            if "photoforge.egg-info" in entry.parts:
+                continue
+
+            indent = "    " * depth
+            lines.append(f"{indent}{entry.name}")
+
+            if entry.is_dir():
+                walk(entry, depth + 1)
+
+    walk(root, 0)
 
     TREE_OUTPUT.write_text("\n".join(lines), encoding="utf-8")
 
@@ -58,7 +68,6 @@ def generate_git_status() -> None:
     # Optional: keep the rest of the status below (recommended)
     if filtered:
         output_lines.append("")
-        output_lines.append("Other changes:")
         unstaged: list[str] = [
             line for line in filtered
             if not (len(line) > 0 and line[0] != " ")
