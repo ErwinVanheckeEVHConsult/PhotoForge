@@ -6,7 +6,6 @@ from pathlib import Path
 
 from .exif import extract_timestamp
 
-
 @dataclass(frozen=True)
 class NormalizedMetadata:
     """Format-agnostic metadata structure for pipeline-relevant fields only.
@@ -19,15 +18,38 @@ class NormalizedMetadata:
     timestamp: datetime
     timestamp_source: str
 
+def normalize_metadata(
+    timestamp: datetime,
+    timestamp_source: str,
+) -> NormalizedMetadata:
+    """Enforce deterministic metadata structure.
 
-def build_normalized_metadata(timestamp: datetime, timestamp_source: str) -> NormalizedMetadata:
-    """Adapt existing timestamp values into the normalized metadata structure."""
+    This function is the single normalization entry point.
+    It performs validation only and must not introduce any transformation,
+    inference, or fallback behavior.
+    """
+    
+    if not isinstance(timestamp, datetime): # type: ignore[unnecessary-isinstance]
+        raise TypeError("timestamp must be a datetime")
+
+    if timestamp.tzinfo is not None and timestamp.utcoffset() is not None:
+        raise TypeError("timestamp must be naive")
+    
+    if not isinstance(timestamp_source, str): # type: ignore[unnecessary-isinstance]
+        raise TypeError("timestamp_source must be a string")
+    
+    if not timestamp_source:
+        raise ValueError("timestamp_source must not be empty")
+    
+    # No transformation allowed
+    # No timezone conversion
+    # No fallback
+    # No mutation
 
     return NormalizedMetadata(
         timestamp=timestamp,
         timestamp_source=timestamp_source,
     )
-
 
 def extract_jpeg_normalized_metadata(path: Path, mtime_timestamp: float) -> NormalizedMetadata:
     """Wrap existing JPEG EXIF extraction without modifying its behavior.
@@ -37,4 +59,4 @@ def extract_jpeg_normalized_metadata(path: Path, mtime_timestamp: float) -> Norm
     """
 
     timestamp, timestamp_source = extract_timestamp(path, mtime_timestamp)
-    return build_normalized_metadata(timestamp, timestamp_source)
+    return normalize_metadata(timestamp, timestamp_source)
