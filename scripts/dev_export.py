@@ -2,12 +2,17 @@ from pathlib import Path
 import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+EXCLUDED_BY_ROOT = {
+    "src": {"photoforge.egg-info"},
+    "ProjectDocs": {"milestones", "planning-proposals", "templates"},
+}
 
 #TREE_OUTPUT = PROJECT_ROOT / "tree-src.txt"
 GIT_OUTPUT = PROJECT_ROOT / "git-status.txt"
 
 
 def generate_tree(subdir:str) -> None:
+    excluded = EXCLUDED_BY_ROOT.get(subdir, set())
     treeoutput = PROJECT_ROOT / f"tree-{subdir}.txt"    
     root = PROJECT_ROOT / subdir
 
@@ -20,10 +25,7 @@ def generate_tree(subdir:str) -> None:
             if "__pycache__" in entry.parts:
                 continue
             
-            if "photoforge.egg-info" in entry.parts:
-                continue
-
-            if subdir=="ProjectDocs" and entry.name in {"milestones", "planning-proposals", "templates"}:
+            if entry.name in excluded:
                 continue
 
             indent = "    " * depth
