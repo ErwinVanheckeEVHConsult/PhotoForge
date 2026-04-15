@@ -1,244 +1,384 @@
-# PhotoForge v0.3 — Scanner Pipeline Specification
+# PhotoForge — Scanner Pipeline
 
 ## Purpose
 
-The scanner pipeline is responsible for discovering files, enriching supported JPEG files into complete `FileRecord` objects, classifying corrupt files, and reporting skipped files and errors.
+The scanner pipeline is responsible for discovering filesystem entries under the input directory, filtering them deterministically, enriching processable files into complete `FileRecord` objects, and classifying files that cannot be fully processed.
 
 The scanner does **not**:
 
-- modify files
 - plan actions
-- infer duplicates
+- perform duplicate grouping
+- perform contextual grouping
 - generate filenames
-- perform reporting
+- render reports
+- modify the filesystem
 
-It produces fully enriched, deterministic input for the planner and classifies files that cannot be processed.
+The scanner returns a deterministic `ScanResult` containing:
 
----
-
-## High-Level Pipeline
-
-For a given input directory:
-
-1. Validate input path
-2. Recursively discover all files
-3. Filter supported JPEG files
-4. Normalize paths
-5. Read file metadata (size, mtime)
-6. Extract canonical timestamp (via EXIF fallback chain)
-7. Compute SHA-256 hash
-8. Construct `FileRecord`
-9. Classify corrupt files
-10. Record skipped files and issues
-11. Return scan result
+- valid `FileRecord` objects
+- skipped files
+- scan issues
+- deterministic counters
 
 ---
 
-## Detailed Pipeline
+## Responsibility Boundary
 
-### 1. Input Validation
+### scanner.py is responsible for
 
-Before scanning:
+- validating the input directory
+- recursively discovering filesystem entries
+- deterministic ordering of traversal results
+- classifying entries by extension and file type
+- reading file size and modification time
+- invoking timestamp extraction
+- invoking metadata normalization
+- invoking SHA-256 hashing
+- constructing `FileRecord`
+- classifying corrupt files
+- collecting skipped-file and issue diagnostics
+- returning a deterministic `ScanResult`
 
-- Resolve input path to absolute `Path`
-- Verify:
-  - path exists
-  - path is accessible
-  - path is a directory
+### scanner.py is not responsible for
 
-If any check fails:
-
-→ **Fatal error (abort execution)**
+- converting corrupt scan results into `CorruptFile`
+- planning rename or move actions
+- duplicate grouping
+- contextual grouping
+- reporting or serialization
+- applying filesystem changes
 
 ---
 
-### 2. File Discovery
+## High-Level Flow
+
+For a given input directory, the scanner executes the following stages in order:
+
+1. Validate input directory
+2. Discover filesystem entries recursively
+3. For each discovered path, classify:
+   - symlink
+   - non-regular file
+   - unsupported extension
+   - recognized but not processable format
+   - processable format
+4. For each processable file:
+   - read file size and mtime
+   - extract timestamp
+   - normalize metadata
+   - compute SHA-256
+   - construct `FileRecord`
+5. For failures during processable-file enrichment:
+   - classify file as corrupt
+   - record `SkippedFile`
+   - record `ScanIssue`
+6. Return a deterministic `ScanResult`
+
+---
+
+## Input Validation
 
 Function:
 
-~~~python
-discover_files(input_path: Path) -> list[Path]
-~~~
+    scan_directory(input_path: Path) -> ScanResult
 
-Behavior:
+Validation is performed by:
 
-- Recursively walk directory tree
-- Include all discovered filesystem entries
-- Normalize all paths to absolute `Path`
-- Sort lexicographically
-
-Output:
-
-→ deterministic list of all paths
-
----
-
-### 3. Supported File Filtering
-
-Function:
-
-~~~python
-is_supported_file(path: Path) -> bool
-~~~
-
-Supported formats (strict):
-
-- `.jpg`
-- `.jpeg`
-- case-insensitive
-
-Behavior:
-
-- If supported → continue pipeline
-- If not supported:
-  - add `SkippedFile(reason="unsupported_extension")`
-  - do not process further
-
----
-
-### 4. Path Normalization
-
-Function:
-
-~~~python
-normalize_path(path: Path) -> Path
-~~~
+    _validate_input_directory(input_path: Path) -> Path
 
 Rules:
 
-- must be absolute
-- must be normalized
-- no string paths inside the model
+- input path is normalized via `resolve(strict=True)`
+- input path must exist
+- input path must be accessible
+- input path must be a directory
+
+Failure behavior:
+
+- if the path does not exist, raise `ValueError`
+- if the path is inaccessible, raise `ValueError`
+- if the path is not a directory, raise `ValueError`
+
+These are fatal errors. Scanning does not continue.
 
 ---
 
-### 5. File Metadata Extraction
+## Discovery
 
 Function:
 
-~~~python
-get_file_size_and_mtime(path: Path) -> tuple[int, float]
-~~~
+    discover_files(input_path: Path) -> tuple[Path, ...]
+
+Behavior:
+
+- recursive traversal uses `os.walk(..., topdown=True, followlinks=False)`
+- directory names are sorted lexicographically before descent
+- filenames are sorted lexicographically before processing
+- each discovered file path is converted to `Path(root) / filename`
+- each discovered path is normalized with `resolve(strict=False)`
+
+Output:
+
+- deterministic tuple of discovered file paths
+
+Notes:
+
+- discovery collects filenames returned by `os.walk`
+- symlink handling occurs later during per-path classification
+- the scanner result counter `total_entries_seen` equals the number of discovered paths
+
+---
+
+## Extension Classification
+
+The scanner distinguishes three extension classes.
+
+### Processable extensions
+
+Processable files are currently:
+
+- `.jpg`
+- `.jpeg`
+
+Matching is case-insensitive.
+
+These files continue through the enrichment pipeline.
+
+### Recognized but not processable extensions
+
+Recognized but not processable files are currently:
+
+- `.png`
+- `.heic`
+- `.heif`
+- `.cr2`
+- `.nef`
+- `.arw`
+- `.mp4`
+- `.mov`
+
+Matching is case-insensitive.
+
+These files are recognized by the scanner but are not processed into `FileRecord` objects.
+
+They are recorded as:
+
+- `SkippedFile(reason="recognized_format_not_processable")`
+
+No issue is recorded for this classification.
+
+### Unsupported extensions
+
+Any extension not in the supported-extension set is treated as unsupported.
+
+These files are recorded as:
+
+- `SkippedFile(reason="unsupported_extension")`
+
+No issue is recorded for this classification.
+
+---
+
+## Entry Classification Rules
+
+For each discovered path, the scanner applies classification in this order.
+
+### 1. Symbolic link
+
+If `path.is_symlink()` is true:
+
+- record `SkippedFile(reason="symlink")`
+- do not process further
+
+### 2. Non-regular file
+
+If `path.is_file()` is false:
+
+- record `SkippedFile(reason="not_regular_file")`
+- do not process further
+
+### 3. Unsupported extension
+
+If `is_supported_file(path)` is false:
+
+- record `SkippedFile(reason="unsupported_extension")`
+- do not process further
+
+### 4. Recognized but not processable format
+
+If `is_recognized_file(path)` is true:
+
+- record `SkippedFile(reason="recognized_format_not_processable")`
+- do not process further
+
+### 5. Processable file
+
+Only files reaching this stage are enriched into `FileRecord`.
+
+---
+
+## Metadata Read Stage
+
+Function:
+
+    get_file_size_and_mtime(path: Path) -> tuple[int, float]
 
 Returns:
 
-- `size: int` (bytes)
-- `mtime_timestamp: float` (POSIX timestamp)
+- `size`: file size in bytes
+- `mtime_timestamp`: modification time as POSIX timestamp
 
-Failure:
+Failure behavior:
 
-- unreadable metadata → **corrupt file classification**
+- `OSError` during metadata access causes corrupt-file classification
+
+Corrupt classification:
+
+- `SkippedFile.reason = "corrupt_metadata_unreadable"`
+- `ScanIssue.severity = "error"`
+- `ScanIssue.code = "corrupt_metadata_unreadable"`
+- `ScanIssue.message = str(exception)`
+
+No `FileRecord` is created for that file.
 
 ---
 
-### 6. Timestamp Extraction (EXIF)
+## Timestamp Extraction Stage
 
-Handled by `exif.py`
+The scanner invokes timestamp extraction through:
 
-Function:
+    extract_timestamp(path: Path, mtime_timestamp: float) -> tuple[datetime, str]
 
-~~~python
-extract_timestamp(path: Path, mtime_timestamp: float) -> tuple[datetime, str]
-~~~
+This is provided by `exif.py`.
 
-Fallback chain (strict order):
+EXIF fallback order:
 
 1. EXIF `DateTimeOriginal`
 2. EXIF `DateTimeDigitized`
 3. EXIF `DateTime`
 4. filesystem `mtime`
 
-Normalization:
-
-- EXIF format must be: `YYYY:MM:DD HH:MM:SS`
-- Convert to naive `datetime`
-- No timezone handling
-- Invalid EXIF values are ignored (fallback continues)
-
-Returned:
-
-- `timestamp: datetime`
-- `timestamp_source: str`
-
-Allowed `timestamp_source` values:
+Possible raw timestamp-source values returned by extraction:
 
 - `exif_datetimeoriginal`
 - `exif_datetimedigitized`
 - `exif_datetime`
 - `mtime`
 
-Important:
+Important behavior:
 
-- EXIF failure is **not an error** if fallback succeeds
-- `mtime` is always valid fallback
+- missing EXIF is not an error
+- unreadable or invalid EXIF inside `_read_exif(...)` falls back to empty EXIF data
+- invalid EXIF datetime values are treated as missing and fallback continues
+- `mtime` is a valid fallback result
+
+After extraction, the scanner invokes metadata normalization:
+
+    normalize_metadata(extracted_timestamp, extracted_timestamp_source)
+
+The normalized result provides:
+
+- `timestamp`
+- `timestamp_source`
+
+Failure behavior:
+
+Any exception raised during extraction or normalization causes corrupt-file classification.
+
+Corrupt classification:
+
+- `SkippedFile.reason = "corrupt_timestamp_unresolved"`
+- `ScanIssue.severity = "error"`
+- `ScanIssue.code = "corrupt_timestamp_unresolved"`
+- `ScanIssue.message = str(exception)`
+
+No `FileRecord` is created for that file.
 
 ---
 
-### 7. Hashing
+## Hashing Stage
 
-Handled by `hashing.py`
+The scanner computes content hashing through:
 
-Function:
-
-~~~python
-compute_sha256(path: Path) -> str
-~~~
+    compute_sha256(path: Path) -> str
 
 Rules:
 
-- SHA-256 only
-- Full file content
-- Lowercase hex digest
-- 64 characters
+- algorithm is SHA-256
+- full file content is hashed
+- digest is lowercase hexadecimal
+- full digest length is 64 characters
 
-Short hash:
+The scanner derives:
 
-~~~python
-short_hash = sha256[:8]
-~~~
+- `short_hash = sha256[:8]`
 
-Failure:
+Failure behavior:
 
-- hashing failure → **corrupt file classification**
+If hashing raises `OSError`:
+
+- classify as `corrupt_file_unreadable`
+
+If hashing raises any other exception:
+
+- classify as `corrupt_hash_failed`
+
+Corrupt classifications:
+
+For unreadable file content:
+
+- `SkippedFile.reason = "corrupt_file_unreadable"`
+- `ScanIssue.severity = "error"`
+- `ScanIssue.code = "corrupt_file_unreadable"`
+- `ScanIssue.message = str(exception)`
+
+For other hashing failure:
+
+- `SkippedFile.reason = "corrupt_hash_failed"`
+- `ScanIssue.severity = "error"`
+- `ScanIssue.code = "corrupt_hash_failed"`
+- `ScanIssue.message = str(exception)`
+
+No `FileRecord` is created for that file.
 
 ---
 
-### 8. FileRecord Construction
+## FileRecord Construction
 
-A `FileRecord` is created only if all steps succeed.
+A `FileRecord` is created only if all enrichment stages succeed.
 
-Fields:
+Definition:
 
-- `path: Path`
-- `size: int`
-- `timestamp: datetime`
-- `timestamp_source: str`
-- `sha256: str`
-- `short_hash: str`
+    @dataclass(frozen=True)
+    class FileRecord:
+        path: Path
+        size: int
+        timestamp: datetime
+        timestamp_source: str
+        sha256: str
+        short_hash: str
 
-No partial records are allowed.
+Field population:
+
+- `path` = discovered file path
+- `size` = metadata size
+- `timestamp` = normalized metadata timestamp
+- `timestamp_source` = normalized metadata timestamp source
+- `sha256` = full SHA-256 digest
+- `short_hash` = first 8 characters of `sha256`
+
+Rules:
+
+- no partial `FileRecord` objects are allowed
+- a file either becomes one complete `FileRecord` or it is skipped/classified as corrupt
 
 ---
 
-### 9. Corrupt File Classification (v0.3)
+## Corrupt File Classification
 
-A file is classified as **corrupt** if it cannot be fully processed through the pipeline.
+A file is classified as corrupt if it is processable by extension but cannot be fully enriched into a valid `FileRecord`.
 
-Corrupt conditions include:
-
-- metadata cannot be read
-- timestamp extraction fails
-- file cannot be read
-- hashing fails
-
-Representation:
-
-- `SkippedFile.reason` must start with `"corrupt_"`
-- `ScanIssue` must be recorded with:
-  - `severity="error"`
-  - deterministic `code`
-
-Standard corrupt reason values:
+Corrupt reason values currently used by the scanner:
 
 - `corrupt_metadata_unreadable`
 - `corrupt_timestamp_unresolved`
@@ -247,181 +387,155 @@ Standard corrupt reason values:
 
 Rules:
 
-- corrupt classification must be deterministic
-- same file must always produce the same classification
-- no recovery or retry logic is allowed
-
-Behavior:
-
-- do not create `FileRecord`
-- record `SkippedFile`
-- record `ScanIssue`
-- continue processing
+- corrupt classification is deterministic
+- corrupt files do not produce `FileRecord`
+- corrupt files are represented inside `ScanResult` through:
+  - `SkippedFile.reason`
+  - `ScanIssue.code`
+- scanner does not construct `CorruptFile`
 
 ---
 
-### 10. Error Handling
+## Diagnostic Structures
 
-#### Fatal Errors (abort)
+### SkippedFile
 
-- invalid input path
-- inaccessible input path
-- input is not a directory
+Definition:
 
----
+    @dataclass(frozen=True)
+    class SkippedFile:
+        path: Path
+        reason: str
 
-#### Non-Fatal Per-File Errors
+Reason values currently emitted by the scanner:
 
-Continue scanning:
+Non-corrupt reasons:
 
-- metadata unreadable → corrupt
-- timestamp unresolved → corrupt
-- hashing failure → corrupt
-- file unreadable → corrupt
-
-Behavior:
-
-- do not create `FileRecord`
-- classify as corrupt
-- record `SkippedFile`
-- record `ScanIssue`
-- continue
-
----
-
-#### EXIF Behavior
-
-- missing EXIF → not an error
-- invalid EXIF → not an error
-- fallback to mtime → valid
-
----
-
-#### Unsupported Files
-
-- not an error
-- recorded as skipped
-
----
-
-#### Symbolic Links
-
-- ignored
-- recorded as skipped
-
----
-
-## Reporting Model
-
-### Skipped Files
-
-~~~python
-@dataclass(frozen=True)
-class SkippedFile:
-    path: Path
-    reason: str
-~~~
-
-Reason values:
-
-Non-corrupt:
-
-- `unsupported_extension`
 - `symlink`
 - `not_regular_file`
+- `unsupported_extension`
+- `recognized_format_not_processable`
 
-Corrupt:
-
-- `corrupt_metadata_unreadable`
-- `corrupt_timestamp_unresolved`
-- `corrupt_file_unreadable`
-- `corrupt_hash_failed`
-
----
-
-### Issues
-
-~~~python
-@dataclass(frozen=True)
-class ScanIssue:
-    path: Path
-    severity: str  # "error"
-    code: str
-    message: str
-~~~
-
-Corrupt-related codes:
+Corrupt reasons:
 
 - `corrupt_metadata_unreadable`
 - `corrupt_timestamp_unresolved`
 - `corrupt_file_unreadable`
 - `corrupt_hash_failed`
 
----
+### ScanIssue
 
-### Scan Result
+Definition:
 
-~~~python
-@dataclass(frozen=True)
-class ScanResult:
-    records: list[FileRecord]
-    skipped: list[SkippedFile]
-    issues: list[ScanIssue]
-    total_entries_seen: int
-    supported_files_processed: int
-~~~
+    @dataclass(frozen=True)
+    class ScanIssue:
+        path: Path
+        severity: str
+        code: str
+        message: str
 
----
+Current scanner behavior:
 
-## Determinism Rules
+- corrupt-file classifications produce `ScanIssue` with `severity="error"`
+- non-corrupt skips do not produce `ScanIssue`
 
-- discovered files sorted lexicographically
-- skipped files sorted by path
-- issues sorted by path then code
-- no randomness allowed
+Important boundary:
 
----
-
-## Scanner Responsibility Boundary
-
-### scanner.py
-
-- orchestration
-- discovery
-- filtering
-- metadata reading
-- calling EXIF + hashing
-- constructing `FileRecord`
-- classifying corrupt files
-- collecting diagnostics
+- `ScanIssue` is diagnostic only
+- downstream corrupt-file propagation does not derive from `ScanIssue`
+- the runtime transformation to `CorruptFile` is based on `SkippedFile.reason` values with the `corrupt_` prefix
 
 ---
 
-### exif.py
+## Scan Result
 
-- EXIF reading
-- timestamp parsing
-- fallback logic
-- timestamp normalization
+Definition:
+
+    @dataclass(frozen=True)
+    class ScanResult:
+        records: tuple[FileRecord, ...]
+        skipped: tuple[SkippedFile, ...]
+        issues: tuple[ScanIssue, ...]
+        total_entries_seen: int
+        supported_files_processed: int
+
+Meaning:
+
+- `records` contains all successfully enriched valid files
+- `skipped` contains all deterministic skip classifications
+- `issues` contains recorded error diagnostics
+- `total_entries_seen` equals number of discovered paths
+- `supported_files_processed` equals number of created `FileRecord` objects
+
+Current implementation behavior:
+
+- `supported_files_processed = len(records)`
 
 ---
 
-### hashing.py
+## Ordering Rules
 
-- SHA-256 computation only
+The scanner enforces explicit ordering.
+
+### Discovery ordering
+
+- directory names sorted lexicographically
+- filenames sorted lexicographically
+- discovered output reflects deterministic walk order
+
+### Returned collections
+
+Before `ScanResult` is returned:
+
+- `records` preserve deterministic processing order from discovered paths
+- `skipped` are sorted lexicographically by `path`
+- `issues` are sorted by:
+  - `path`
+  - then `code`
+
+No implicit ordering is relied upon.
 
 ---
 
-## v0.3 Extension
+## Determinism Guarantees
 
-Corrupt files are:
+For identical input and filesystem state, the scanner must produce identical:
 
-- explicitly classified during scanning
-- excluded from `FileRecord` output
-- propagated through the planning pipeline
-- reported in final output
+- discovered path ordering
+- skip classification
+- corrupt classification
+- `FileRecord` values
+- `SkippedFile` values
+- `ScanIssue` values
+- `ScanResult` counters
 
-The scanner itself does not perform reporting.
+Scanner behavior must not depend on:
+
+- randomness
+- environment variables
+- locale-dependent parsing
+- filesystem traversal nondeterminism
+
+---
+
+## Integration Boundary
+
+The scanner returns `ScanResult` only.
+
+The scanner does not convert scan output into planner-layer corrupt-file structures.
+
+Current runtime integration is:
+
+1. scanner returns `ScanResult`
+2. CLI derives `CorruptFile` objects from `scan_result.skipped`
+3. derivation rule is:
+   - include entries where `SkippedFile.reason` starts with `"corrupt_"`
+   - map:
+     - `CorruptFile.path = SkippedFile.path`
+     - `CorruptFile.error_type = SkippedFile.reason`
+4. `ScanIssue` is not used for this transformation
+
+This transformation is outside the scanner boundary.
 
 ---
 
@@ -429,16 +543,14 @@ The scanner itself does not perform reporting.
 
 `scan_directory(input_path)` must:
 
-1. validate input
-2. discover all files
-3. filter supported JPEG files
-4. enrich valid files into complete `FileRecord`
-5. classify corrupt files
-6. collect skipped + issues
+1. validate the input directory
+2. discover entries recursively in deterministic order
+3. classify each discovered path deterministically
+4. enrich processable JPEG files into complete `FileRecord`
+5. classify per-file enrichment failures as corrupt
+6. collect skipped-file and issue diagnostics
 7. return deterministic `ScanResult`
 
-Only fully valid `FileRecord` objects are passed to the planner.
+The scanner produces complete valid records and deterministic diagnostics only.
 
-No exceptions.  
-No ambiguity.  
-No partial data.
+It does not plan, report, group, or execute.

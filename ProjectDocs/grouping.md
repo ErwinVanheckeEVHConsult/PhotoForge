@@ -4,19 +4,21 @@
 
 ## Purpose
 
-Contextual grouping defines a deterministic transformation from a set of valid file records to a structured grouping representation.
+Contextual grouping defines a deterministic transformation from a set of valid `FileRecord` objects to a structured `ContextualGrouping` output.
 
 It maps:
 
-- `tuple[FileRecord, ...]` → `ContextualGrouping`
+    tuple[FileRecord, ...] -> ContextualGrouping
 
 This transformation is:
 
 - deterministic
-- pure (no side effects)
+- pure with respect to grouping computation
 - reproducible
+- independent of duplicate grouping and planner decisions
 
-Contextual grouping introduces no changes to existing pipeline behavior.
+Contextual grouping is an additional structural output of the pipeline.
+It does not modify planner behavior.
 
 ---
 
@@ -24,105 +26,323 @@ Contextual grouping introduces no changes to existing pipeline behavior.
 
 ### Input
 
-- Consumes only valid `FileRecord` objects
-- Corrupt files must not be included
-- Input must already satisfy all model invariants
+Contextual grouping consumes only valid `FileRecord` objects.
+
+Requirements:
+
+- all inputs must already satisfy `FileRecord` model invariants
+- corrupt files must not be included
+- skipped files must not be included
+- no partial records are allowed
 
 ### Output
 
-- Produces a `ContextualGrouping` object
-- Output must satisfy all structural invariants defined in the model
+Contextual grouping produces one `ContextualGrouping` object.
 
-### Does Not
+The output must satisfy all structural invariants defined by `model.py` and documented in `model.md`.
 
-- Modify `FileRecord` objects
-- Interact with duplicate grouping
-- Perform canonical selection
-- Read or write filesystem state
-- Access external systems or environment
-- Introduce or infer additional metadata
+### Contextual grouping does not
+
+- modify `FileRecord`
+- read the filesystem
+- inspect skipped files
+- inspect corrupt files
+- perform duplicate grouping
+- perform canonical selection
+- influence action planning
+- generate rename or move actions
+- modify reporting behavior unless explicitly requested by CLI flags
+- access external systems or environment state
 
 ---
 
-## Determinism Guarantees
+## Role in the System
 
-For identical input:
+Contextual grouping is a separate structural layer in the PhotoForge pipeline.
 
-- identical ordering must be applied
-- identical grouping must be produced
-- identical group identifiers must be generated
+It is computed from the same valid `FileRecord` set used by the planner, but it is not part of duplicate grouping and does not affect planner results.
 
-Grouping must not depend on:
+Current pipeline role:
 
-- scan order
-- filesystem traversal
-- runtime conditions
-- environment variables
-- external state
+- scanner produces valid `FileRecord` objects
+- planner produces `PlanResult`
+- contextual grouping is computed separately from valid `FileRecord`
+- reporter may include contextual grouping output when requested
+- CLI exposes this optional output through `--context`
 
-No randomness or implicit behavior is allowed.
+This means contextual grouping is integrated into the active pipeline, but remains behaviorally independent from planning.
 
 ---
 
 ## Execution Model
 
-Contextual grouping is executed as a sequence of deterministic steps:
+Contextual grouping is executed as a deterministic sequence:
 
-1. Apply a total ordering to input records
-2. Partition the ordered sequence into contiguous groups
-3. Derive record references for each group
-4. Construct contextual group structures
-5. Assemble the final grouping container
+1. consume the complete valid `FileRecord` set
+2. derive stable `record_ref` values from each record
+3. apply deterministic ordering
+4. partition the ordered records into groups according to implemented grouping rules
+5. build `ContextualGroup` objects
+6. assemble the final `ContextualGrouping`
 
-The execution model is fixed and must not be altered.
+This execution order is fixed conceptually even if helper-level implementation details vary.
 
 ---
 
-## Constraints
+## Record Reference Model
 
-- Grouping behavior must be fully deterministic
-- All grouping rules must be explicit and fixed
-- No heuristics, probabilistic logic, or adaptive thresholds are allowed
-- Only the following metadata may be used:
-  - `timestamp`
-  - `timestamp_source`
-- No additional metadata fields may influence grouping
-- Grouping must be independent of all other pipeline stages
+Contextual grouping does not embed full `FileRecord` objects in the output.
+
+Instead, each grouped file is referenced through `record_ref`.
+
+Definition:
+
+- `record_ref = str(file_record.path)`
+
+Properties:
+
+- derived deterministically from normalized absolute path
+- stable for identical `FileRecord.path`
+- independent of object identity
+- independent of scan order
+
+Constraints:
+
+- `record_ref` must not be empty
+- `record_ref` values within a group must be unique
+- `record_ref` values across groups must not overlap
+
+---
+
+## Group Identifier Model
+
+Each contextual group has a deterministic `group_id`.
+
+Definition:
+
+- `group_id` is derived only from `member_refs`
+
+Computation:
+
+1. encode `member_refs` as canonical JSON
+2. use UTF-8 encoding
+3. use no whitespace variation
+4. compute SHA-256 of the encoded bytes
+5. represent the result as lowercase hexadecimal
+
+Properties:
+
+- deterministic
+- stable for identical `member_refs`
+- delimiter-safe
+- independent of filesystem state
+- independent of runtime conditions
 
 ---
 
 ## Structural Guarantees
 
-The produced `ContextualGrouping` must satisfy:
+The produced `ContextualGrouping` must satisfy all of the following.
 
-- Coverage:
-  - all input records are included
-- Exclusivity:
-  - each record appears in exactly one group
-- Non-emptiness:
-  - each group contains at least one member
-- Uniqueness:
-  - no record appears in multiple groups
-- Ordering:
-  - group members are ordered according to model requirements
-  - groups are ordered according to model requirements
-- Identifier integrity:
-  - group identifiers are deterministic and correct
+### Coverage
+
+- all input `FileRecord` objects must be represented exactly once through their `record_ref`
+
+### Exclusivity
+
+- a `record_ref` must not appear in more than one group
+
+### Non-emptiness
+
+- each `ContextualGroup` must contain at least one member
+
+### Member ordering
+
+- `member_refs` must be sorted lexicographically
+
+### Member uniqueness
+
+- `member_refs` within a group must be unique
+
+### Group ordering
+
+- `groups` must be sorted lexicographically by `group_id`
+
+### Group identifier integrity
+
+- each `group_id` must equal the deterministic value computed from its `member_refs`
+
+### Group identifier uniqueness
+
+- no two groups may have the same `group_id`
+
+These are model-level invariants and must always hold.
 
 ---
 
-## Integration Status
+## Determinism Guarantees
 
-Contextual grouping is currently:
+For identical input `FileRecord` sets, contextual grouping must produce identical:
 
-- not part of the active pipeline
-- not used by the planner
-- not used by the reporter
-- not exposed via CLI
+- `record_ref` values
+- group membership
+- member ordering
+- `group_id` values
+- group ordering
+- final `ContextualGrouping` structure
 
-It exists as a standalone, deterministic transformation.
+Grouping must not depend on:
 
-Integration into the pipeline must be defined in a future milestone.
+- scan traversal order
+- object identity
+- filesystem ordering
+- randomness
+- locale
+- environment variables
+- external services
+- mutable runtime state
+
+No implicit ordering is allowed.
+
+---
+
+## Metadata Constraints
+
+Contextual grouping may only depend on the metadata fields allowed by the implemented grouping design.
+
+Current allowed metadata fields are:
+
+- `timestamp`
+- `timestamp_source`
+
+No other metadata fields may influence grouping in this version.
+
+In particular, contextual grouping must not depend on:
+
+- SHA-256 duplicate grouping structure
+- file size
+- EXIF fields other than the normalized timestamp outcome
+- planner action classifications
+- target paths
+- reporter state
+
+---
+
+## Relationship to Duplicate Grouping
+
+Contextual grouping is separate from duplicate grouping.
+
+Duplicate grouping:
+
+- groups files by identical SHA-256
+- drives canonical selection
+- drives planning output
+
+Contextual grouping:
+
+- groups valid files by contextual rules defined in the implementation
+- produces a separate structural output
+- does not alter duplicate groups
+- does not alter canonical selection
+- does not alter action classification
+
+The two grouping layers must remain independent.
+
+---
+
+## Relationship to Planner
+
+Contextual grouping does not influence the planner.
+
+Specifically, contextual grouping must not:
+
+- change canonical-file selection
+- change canonical filename generation
+- change target path resolution
+- change collision detection
+- change action status
+- change `PlanResult`
+
+The planner can be fully understood without contextual grouping.
+Contextual grouping is additive output only.
+
+---
+
+## Relationship to Reporter
+
+The reporter accepts contextual grouping separately from `PlanResult`.
+
+Rules:
+
+- contextual grouping output is optional in reports
+- contextual grouping must be included only when explicitly requested
+- if contextual output is requested, a valid `ContextualGrouping` must be provided
+- if contextual output is not requested, reporting behavior remains unchanged except for the absence of contextual sections
+
+This preserves backward-compatible planning semantics while allowing additional structured output.
+
+---
+
+## Relationship to CLI
+
+The CLI exposes contextual grouping through the `--context` flag.
+
+Behavior:
+
+- contextual grouping is computed by the pipeline
+- reporter includes contextual grouping only when `--context` is enabled
+- absence of `--context` suppresses contextual grouping from rendered output
+- `--context` does not change planning behavior
+- `--context` does not change scanner behavior
+- `--context` does not change action execution behavior
+
+This flag controls report inclusion, not grouping semantics.
+
+---
+
+## Integration Boundary
+
+At runtime, the implemented system follows this high-level grouping flow:
+
+    scan_directory(...) -> ScanResult
+    plan_files(scan_result.records, ..., corrupt_files=...) -> PlanResult
+    compute_contextual_grouping(scan_result.records) -> ContextualGrouping
+    reporter(plan_result, contextual_grouping, include_context=...)
+    
+Contextual grouping is computed from the valid `FileRecord` set only.
+
+Corrupt files are excluded because they do not become `FileRecord`.
+
+Skipped non-corrupt files are excluded for the same reason.
+
+---
+
+## Empty Input Behavior
+
+If the input `FileRecord` set is empty, contextual grouping must be represented as:
+
+    ContextualGrouping(groups=())
+
+No synthetic groups may be created.
+
+---
+
+## Model Contract Reference
+
+The structural contract for contextual grouping is defined by the model layer.
+
+This includes:
+
+- `ContextualGroup`
+- `ContextualGrouping`
+- `record_ref` validation
+- `member_refs` ordering and uniqueness
+- `group_id` determinism
+- cross-group exclusivity
+
+This document defines the role, boundaries, and system integration of contextual grouping.
+
+The precise structure and invariants are defined in the model contract and must not be contradicted here.
 
 ---
 
@@ -130,15 +350,32 @@ Integration into the pipeline must be defined in a future milestone.
 
 This document defines:
 
-- the role of contextual grouping
-- its boundaries and constraints
-- its guarantees within the system
+- the purpose of contextual grouping
+- its place in the pipeline
+- its boundaries
+- its determinism guarantees
+- its relationship to planner, reporter, and CLI
+- its structural obligations at system level
 
-This document does not define:
+This document does not redefine:
 
-- grouping rules
-- grouping thresholds
-- grouping algorithms
-- implementation details
+- the full model contract
+- dataclass field definitions already defined in `model.py`
+- low-level helper implementation details unrelated to behavior
 
-These are defined in milestone documents and corresponding implementations.
+Grouping rules themselves must match the implementation and any authoritative architecture documentation.
+
+---
+
+## Final Contract
+
+Contextual grouping is a deterministic, independent structural transformation over valid `FileRecord` objects.
+
+It must:
+
+- consume only valid `FileRecord`
+- produce a structurally valid `ContextualGrouping`
+- remain independent from duplicate grouping and planner behavior
+- be reproducible for identical input
+- be exposed only as optional reporting output
+- never alter action planning or execution

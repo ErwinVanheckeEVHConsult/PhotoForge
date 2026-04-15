@@ -1,0 +1,124 @@
+version: 1.0
+
+purpose:
+  enforce_complete_and_consistent_documentation
+
+scope:
+  modules_root: src/photoforge
+  docs_root: ProjectDocs
+  generic_docs:
+    - README.md
+    - SPEC.md
+    - ProjectDocs/architecture.md
+
+rules:
+  fail_fast: true
+  implementation_is_source_of_truth: true
+  no_scope_drift: true
+
+steps:
+
+  - id: step_0_freeze_scope
+    description: Freeze validation scope
+    action:
+      enumerate_modules: true
+      include_all_modules: true
+      include_generic_docs: true
+
+  - id: step_1_module_enumeration
+    description: List all modules
+    command: find src/photoforge -name "*.py"
+    output: modules_list
+
+  - id: step_2_mapping
+    description: Enforce module → doc mapping
+    for_each: modules_list
+    checks:
+      - type: file_exists
+        path_template: ProjectDocs/{module_name}.md
+      - type: exact_name_match
+
+    on_fail:
+      status: REJECTED
+      reason: missing_or_mismatched_doc
+
+  - id: step_3_classification
+    description: Validate module tier classification
+    for_each: modules_list
+    checks:
+      - type: doc_contains_section
+        path_template: ProjectDocs/{module_name}.md
+        required_section: "Classification"
+
+      - type: doc_contains_one_of
+        path_template: ProjectDocs/{module_name}.md
+        values:
+          - CORE
+          - BOUNDARY
+          - INTERNAL
+
+    on_fail:
+      status: REJECTED
+      reason: missing_or_invalid_classification
+
+  - id: step_4_doc_validation
+    description: Validate documentation correctness
+    for_each: modules_list
+    checks:
+      - type: no_outdated_behavior
+      - type: no_undocumented_behavior
+      - type: no_contradictions_with_code
+
+    on_fail:
+      status: REJECTED
+      reason: documentation_mismatch
+
+  - id: step_5_generic_docs
+    description: Validate generic documentation
+    for_each:
+      - README.md
+      - SPEC.md
+      - ProjectDocs/architecture.md
+    checks:
+      - type: consistent_with_implementation
+      - type: consistent_with_module_docs
+      - type: no_contradictions
+
+    on_fail:
+      status: REJECTED
+      reason: generic_doc_mismatch
+
+  - id: step_6_coverage_matrix
+    description: Validate module references
+    for_each: modules_list
+    checks:
+      - type: referenced_in_any
+        targets:
+          - README.md
+          - SPEC.md
+          - ProjectDocs/architecture.md
+
+      - type: if_behavior_module_then_referenced_in
+        targets:
+          - SPEC.md
+          - ProjectDocs/architecture.md
+
+    on_fail:
+      status: REJECTED
+      reason: missing_references
+
+  - id: step_7_drift_detection
+    description: Detect documentation drift
+    checks:
+      - type: no_docs_describe_nonexistent_behavior
+      - type: no_code_without_docs
+      - type: consistent_terminology
+
+    on_fail:
+      status: REJECTED
+      reason: drift_detected
+
+  - id: step_8_result
+    description: Produce validation result
+    output:
+      status: ACCEPTED

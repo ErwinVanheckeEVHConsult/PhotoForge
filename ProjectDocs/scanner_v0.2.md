@@ -383,4 +383,3 @@ Only fully valid `FileRecord` objects are passed to the planner.
 No exceptions.
 No ambiguity.
 No partial data.
-

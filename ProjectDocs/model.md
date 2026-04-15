@@ -451,7 +451,15 @@ The contextual grouping model must satisfy the following constraints:
 
 Partition:
 
-- each `FileRecord` must belong to exactly one contextual group
+ContextualGrouping represents a partition of FileRecord objects.
+
+The model enforces:
+
+- no overlap between groups
+- valid group structure
+
+Full coverage of all FileRecord objects is a responsibility of the grouping algorithm, not enforced by the model.
+
 - no `FileRecord` may appear in multiple contextual groups
 
 Group constraints:

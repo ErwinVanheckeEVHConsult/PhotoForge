@@ -1,23 +1,28 @@
-# PhotoForge v0.3 Specification
+# PhotoForge Specification
 
-Status: DRAFT  
-Version: 0.3.0  
-Date: 2026-04-13  
+Status: Accepted  
+Version: v0.5.0
+Date: 2026-04-15  
 
-This document defines the exact behavior of PhotoForge v0.3.  
-All implementations must strictly follow this specification.  
+This document defines the exact behavior of PhotoForge as implemented.
 
-If behavior is not explicitly defined here, it is considered out of scope.
+Implementation is the source of truth.
+This specification must reflect actual behavior.
 
 ---
 
 ## 1. Overview
 
-PhotoForge v0.3 is a deterministic command-line tool that scans a directory of JPEG images, detects exact duplicates, identifies corrupt files, and generates a canonical rename and organization plan based on EXIF timestamps and fixed rules.
+PhotoForge is a deterministic command-line tool that:
 
-It can optionally apply the plan through safe file renaming and moving operations.
+- scans a directory
+- extracts and normalizes metadata
+- detects exact duplicates (SHA-256)
+- identifies corrupt files
+- generates a canonical rename and organization plan
+- optionally produces contextual grouping output
 
-v0.3 extends v0.2 with deterministic corrupt file detection and reporting.
+All behavior is deterministic.
 
 ---
 
@@ -25,332 +30,285 @@ v0.3 extends v0.2 with deterministic corrupt file detection and reporting.
 
 ### Command
 
-photoforge `<input_path> [--output <output_path>] [--json] [--apply]`
-
-### Arguments
-
-`<input_path>` (required)  
-Path to the root directory to scan recursively.
+```bash
+photoforge <input_path> [--output <output_path>] [--json] [--apply] [--context]
+```
 
 ### Flags
 
-`--output <output_path>`  
-Target root directory for organized files.  
-If not provided, files are renamed in place.  
-If the path does not exist, it is allowed and will be created during apply.
-
-`--json`  
-Outputs the execution report in JSON format.  
-If present, console output is replaced by JSON output.
-
-`--apply`  
-Executes file rename/move operations.  
-If absent, runs in dry-run mode (default).
+- `--output <output_path>`
+- `--json`
+- `--apply`
+- `--context` (include contextual grouping in output only)
 
 ---
 
-## 3. Supported File Formats
+## 3. Pipeline Execution
 
-Only the following file extensions are processed:
+The system executes the following pipeline:
 
-- .jpg  
-- .jpeg  
+``
+scan_directory(input_path) -> ScanResult
 
-Rules:
+CLI:
+    derive CorruptFile from ScanResult.skipped
 
-- Extension matching is case-insensitive  
-- All output files must use the .jpg extension (lowercase)  
-- All other file types are ignored  
+run_pipeline(...):
+    plan_files(records, corrupt_files) -> PlanResult
+    compute_contextual_grouping(records) -> ContextualGrouping
+
+reporter(...):
+    render output
+``
 
 ---
 
-## 4. Directory Scanning
+## 4. File Classification
 
-- The input directory is scanned recursively  
-- Symbolic links are ignored  
-- Only regular files with supported extensions are processed  
-- Files that cannot be accessed are treated as errors  
+The scanner classifies files into:
 
-### Corrupt File Detection
+### 4.1 Processable
 
-A file is classified as **corrupt** if it cannot be fully and successfully processed through the pipeline.
+- `.jpg`
+- `.jpeg`
 
-A file is considered corrupt if any of the following occurs:
+These files are fully processed into `FileRecord`.
 
-- File cannot be read completely (I/O failure)
-- File cannot be fully hashed
-- File content is invalid for processing (e.g. malformed JPEG)
+---
 
-Rules:
+### 4.2 Recognized but Not Processable
 
-- Corrupt classification must be deterministic  
-- Same file must always produce the same classification  
-- No heuristic or probabilistic detection is allowed  
+- `.png`, `.heic`, `.heif`
+- `.cr2`, `.nef`, `.arw`
+- `.mp4`, `.mov`
 
 Behavior:
 
-- Corrupt files must not produce FileRecord objects  
-- Corrupt files must be tracked separately  
-- Processing must continue for all other files  
+- recorded as skipped
+- not processed further
+- not considered corrupt
 
 ---
 
-## 5. Timestamp Extraction Policy
+### 4.3 Unsupported
 
-Each valid file must be assigned a single canonical timestamp using the following fallback chain:
+- all other file types
 
-1. EXIF DateTimeOriginal  
-2. EXIF DateTimeDigitized  
-3. EXIF DateTime  
-4. File modification time (mtime)  
+Behavior:
 
-### Normalization Rules
-
-- EXIF timestamps must be parsed in the format: YYYY:MM:DD HH:MM:SS  
-- Canonical timestamp format: YYYY-MM-DD HH:MM:SS  
-- No timezone conversion is performed  
-- All timestamps are treated as naive local time  
-- Invalid EXIF values are treated as missing and trigger fallback  
+- recorded as skipped
+- not processed further
 
 ---
 
-## 6. Hashing Strategy
+## 5. Corrupt File Definition
 
-- Algorithm: SHA-256  
-- Hash is computed on full file content  
-- Full 64-character hex digest is used internally  
-- Short hash = first 8 characters of SHA-256  
+A file is corrupt if it is processable but cannot be fully processed.
 
-Files that cannot be fully hashed must be classified as corrupt.
+Corrupt conditions:
 
----
+- metadata unreadable
+- timestamp cannot be resolved
+- file unreadable
+- hashing failure
 
-## 7. Duplicate Grouping
+Behavior:
 
-- Files are grouped by identical SHA-256 hash  
-- Each unique hash defines one group  
-- Groups with more than one file are duplicate groups  
-- Groups with a single file are still processed but not considered duplicates  
-
-Corrupt files are excluded from grouping.
+- no `FileRecord` is created
+- file is recorded as skipped with reason `corrupt_*`
+- `ScanIssue` is recorded
 
 ---
 
-## 8. Canonical File Selection
+## 6. Corrupt File Propagation
+
+Corrupt files are transformed into `CorruptFile` objects.
+
+Transformation rule:
+
+``
+CorruptFile.path = SkippedFile.path
+CorruptFile.error_type = SkippedFile.reason
+``
+
+Selection rule:
+
+- include only `SkippedFile.reason` values starting with `"corrupt_"`
+
+Notes:
+
+- transformation occurs at CLI layer
+- `ScanIssue` is diagnostic only and not used for transformation
+
+---
+
+## 7. Metadata Extraction
+
+Timestamp fallback chain:
+
+1. EXIF `DateTimeOriginal`
+2. EXIF `DateTimeDigitized`
+3. EXIF `DateTime`
+4. filesystem `mtime`
+
+Rules:
+
+- timestamps are naive
+- invalid EXIF values are ignored
+- `mtime` is valid fallback
+
+---
+
+## 8. Hashing
+
+- SHA-256 over full file content
+- lowercase hex digest
+- short hash = first 8 characters
+
+---
+
+## 9. Duplicate Grouping
+
+- files grouped by identical SHA-256
+- one group per unique hash
+- groups sorted deterministically
+
+---
+
+## 10. Canonical Selection
 
 Exactly one file per group is selected using:
 
-1. Largest file size  
-2. If equal, prefer EXIF timestamp over mtime  
-3. If still equal, lexicographically smallest normalized absolute path  
-
-Corrupt files are never considered for canonical selection.
+1. largest size
+2. prefer EXIF timestamp over `mtime`
+3. lexicographically smallest path
 
 ---
 
-## 9. Canonical Filename Format
+## 11. Canonical Filename
 
-Format:
+``
+YYYY-MM-DD_HHMMSS_<short-hash>.jpg
+``
 
-YYYY-MM-DD_HHMMSS_`<short-hash>`.jpg
+---
+
+## 12. Target Path Resolution
+
+### In-place
+
+``
+source.parent / filename
+``
+
+### Output mode
+
+``
+output/YYYY/MM/DD/filename
+``
+
+---
+
+## 13. Action Classification
+
+For canonical files:
+
+- `skip`
+- `collision`
+- `rename`
+- `move`
+
+For duplicates:
+
+- `duplicate`
+
+---
+
+## 14. Planner Output
+
+Planner returns:
+
+``
+PlanResult:
+    records
+    actions
+    corrupt_files
+``
 
 Rules:
 
-- Timestamp comes from canonical timestamp  
-- `<short-hash>` = first 8 characters of SHA-256  
-- Extension is always .jpg (lowercase)  
-
-Example:
-
-2024-05-17_143211_ab12cd34.jpg
+- corrupt files do not produce records
+- corrupt files do not produce actions
+- corrupt files do not affect planning
 
 ---
 
-## 10. Target Path Resolution
+## 15. Contextual Grouping
 
-If --output is not specified:
+Contextual grouping:
 
-- Files are renamed in place  
+- operates on `FileRecord` set
+- produces `ContextualGrouping`
+- independent from duplicate grouping
+- does not affect planning
 
-If --output is specified:
+Included in output only when:
 
-- Files are moved to:
-
-`<output_path>/<YYYY>/<MM>/<DD>/<filename>`
-
-Rules:
-
-- YYYY = four-digit year  
-- MM = two-digit month (01–12)  
-- DD = two-digit day (01–31)  
-- Values are derived from canonical timestamp  
-- No fallback or alternative structure is allowed  
+``
+--context
+``
 
 ---
 
-## 11. Apply Behavior
+## 16. Reporting
 
-### Default (Dry-Run)
+Output modes:
 
-- No file system changes  
-- Full plan is computed and reported  
+- console (default)
+- JSON (`--json`)
 
-### With --apply
+Includes:
 
-- Rename/move canonical files only  
-- Create target directories if needed  
-- Duplicate files are not modified  
-- Corrupt files are not modified  
-- No metadata changes  
-
----
-
-## 12. Collision Handling Policy
-
-If target path already exists:
-
-- Do not overwrite  
-- Skip operation  
-- Record collision  
+- summary
+- records
+- actions
+- corrupt_files
+- contextual_groups (optional)
 
 ---
 
-## 13. Dry-Run Behavior
+## 17. Apply Behavior
 
-- Dry-run is default  
-- No files are modified  
-- Output reflects exact actions that would occur  
+Default: dry-run
 
----
+With `--apply`:
 
-## 14. Output and Reporting
-
-### Console Output
-
-Must include:
-
-- Total files processed  
-- Duplicate groups  
-- Duplicate files  
-- Planned actions (canonical files only)  
-- Target paths  
-- Timestamp source for each planned canonical action  
-- Total corrupt files  
-
-A dedicated section must list corrupt files including:
-
-- file path  
-- error type  
+- execute actions for canonical files only
+- duplicates are not modified
+- corrupt files are not modified
+- no overwrite allowed
 
 ---
 
-### JSON Output
-
-Must include:
-
-- summary  
-- records list  
-- actions  
-- duplicate_group_id  
-- duplicate_group_size  
-- canonical flag  
-- target path  
-- action status  
-- timestamp  
-- timestamp_source  
-- corrupt_files (list)  
-
-Each corrupt file entry must include:
-
-- path  
-- error_type  
-
-### Summary must include
-
-- corrupt_file_count  
-
----
-
-### Output Mode Rules
-
-- Default output is console format  
-- If --json is provided, only JSON output is produced  
-- No mixed output modes are allowed  
-
----
-
-## 15. Error Handling
-
-### Non-Fatal Errors
-
-- File unreadable  
-- EXIF parsing failure  
-- Hashing failure  
-
-Behavior:
-
-- File classified as corrupt if processing cannot complete  
-- Issue recorded  
-- Processing continues  
-
-### Fatal Errors
-
-- Invalid input path  
-- Input path inaccessible  
-
----
-
-## 16. IN SCOPE
-
-- CLI operation  
-- Recursive scanning  
-- JPEG processing  
-- EXIF timestamp extraction  
-- SHA-256 hashing  
-- Duplicate grouping  
-- Deterministic canonical selection  
-- Canonical naming  
-- Year/month/day organization  
-- Dry-run mode  
-- Safe apply mode  
-- Collision handling  
-- Console reporting  
-- JSON reporting  
-- Timestamp source transparency  
-- Corrupt file detection  
-- Corrupt file reporting  
-
----
-
-## 17. OUT OF SCOPE
-
-- Perceptual duplicate detection  
-- Non-JPEG formats  
-- File deletion  
-- Overwriting files  
-- Metadata rewriting  
-- Timezone normalization  
-- Sidecar files  
-- GUI  
-- AI features  
-- Cloud integration  
-- Custom naming templates  
-- Alternative folder structures  
-- User-defined rules  
-- File repair or recovery  
-
----
-
-## 18. Determinism Requirement
+## 18. Determinism
 
 For identical input:
 
-- Same hashes  
-- Same grouping  
-- Same canonical selection  
-- Same filenames  
-- Same target paths  
-- Same corrupt file classification  
-- Same output  
+- identical scan results
+- identical grouping
+- identical planning
+- identical output
 
 No randomness allowed.
+
+---
+
+## 19. Constraints
+
+- JPEG processing only
+- exact duplicate detection only
+- no perceptual hashing
+- no file deletion
+- no overwrite
+- no concurrency
+- no external state
