@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 
 from .version import VERSION
+from .pipeline import run_pipeline
 from .operations import apply_actions
-from .planner import plan_files
 from .reporter import render_console_report, render_json_report
 from .scanner import scan_directory
 from .model import CorruptFile
@@ -71,15 +71,15 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     scan_result = scan_directory(input_path)
-    
+
     corrupt_files = [
         CorruptFile(path=s.path, error_type=s.reason)
         for s in scan_result.skipped
         if s.reason.startswith("corrupt_")
     ]
 
-    plan_result = plan_files(
-        scan_result.records,
+    plan_result, _ = run_pipeline(
+        input_path,
         output_path=output_path,
         corrupt_files=corrupt_files,
     )
