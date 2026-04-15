@@ -3,12 +3,13 @@ import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-TREE_OUTPUT = PROJECT_ROOT / "tree-src.txt"
+#TREE_OUTPUT = PROJECT_ROOT / "tree-src.txt"
 GIT_OUTPUT = PROJECT_ROOT / "git-status.txt"
 
 
-def generate_tree() -> None:
-    root = PROJECT_ROOT / "src"
+def generate_tree(subdir:str) -> None:
+    treeoutput = PROJECT_ROOT / f"tree-{subdir}.txt"    
+    root = PROJECT_ROOT / subdir
 
     lines: list[str] = []
 
@@ -22,6 +23,9 @@ def generate_tree() -> None:
             if "photoforge.egg-info" in entry.parts:
                 continue
 
+            if subdir=="ProjectDocs" and entry.name in {"milestones", "planning-proposals", "templates"}:
+                continue
+
             indent = "    " * depth
             lines.append(f"{indent}{entry.name}")
 
@@ -30,7 +34,7 @@ def generate_tree() -> None:
 
     walk(root, 0)
 
-    TREE_OUTPUT.write_text("\n".join(lines), encoding="utf-8")
+    treeoutput.write_text("\n".join(lines), encoding="utf-8")
 
 
 def generate_git_status() -> None:
@@ -82,7 +86,8 @@ def generate_git_status() -> None:
 
 
 def main():
-    generate_tree()
+    generate_tree("src")
+    generate_tree("ProjectDocs")
     generate_git_status()
 
 
