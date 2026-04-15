@@ -1,0 +1,21 @@
+PhotoForge v0.5-dev
+Mode: dry-run
+
+Summary
+  Total files processed: 0
+  Duplicate groups: 0
+  Total duplicates: 0
+  Planned renames: 0
+  Planned moves: 0
+  Planned skips: 0
+  Collisions: 0
+  Corrupt files: 0
+
+Planned actions
+  None
+
+Corrupt files
+  None
+
+Contextual groups
+  None

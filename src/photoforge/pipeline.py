@@ -47,7 +47,7 @@ def run_pipeline(
     records = scan_result.records
 
     grouping = grouping_builder(records)
-    plan_result = planner(scan_result, *planner_args, **planner_kwargs)
+    plan_result = planner(scan_result.records, *planner_args, **planner_kwargs)
 
     return plan_result, grouping
 

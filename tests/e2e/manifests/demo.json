@@ -1,0 +1,9 @@
+{
+  "fixture_id": "demo",
+  "input_dir": "tests/e2e/fixtures/demo/input",
+  "scenarios": {
+    "default": true,
+    "context": true,
+    "determinism_runs": 3
+  }
+}

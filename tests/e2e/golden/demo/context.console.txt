@@ -1,0 +1,256 @@
+PhotoForge v0.5-dev
+Mode: dry-run
+
+Summary
+  Total files processed: 49
+  Duplicate groups: 6
+  Total duplicates: 6
+  Planned renames: 43
+  Planned moves: 0
+  Planned skips: 0
+  Collisions: 0
+  Corrupt files: 0
+
+Planned actions
+  [rename]
+    source: <INPUT_ROOT>/IMAG0167.jpg
+    target: <INPUT_ROOT>/2018-03-16_011327_0304747a.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0183.jpg
+    target: <INPUT_ROOT>/2018-03-16_185504_042d6fed.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0195.jpg
+    target: <INPUT_ROOT>/2018-03-17_215302_047df52f.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0168.jpg
+    target: <INPUT_ROOT>/2018-03-16_011330_051d7291.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0187.jpg
+    target: <INPUT_ROOT>/2018-03-16_210404_0ea0bf68.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0204.jpg
+    target: <INPUT_ROOT>/2018-03-19_123900_19da1107.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0189.jpg
+    target: <INPUT_ROOT>/2018-03-16_214534_1e475f94.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0173.jpg
+    target: <INPUT_ROOT>/2018-03-16_120354_1f0e0bd9.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0178.jpg
+    target: <INPUT_ROOT>/2018-03-16_133623_2567b371.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/JPEG_20180316_195505_111704202.jpg
+    target: <INPUT_ROOT>/2026-04-15_194802_313e84f4.jpg
+    timestamp source: mtime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0194.jpg
+    target: <INPUT_ROOT>/2018-03-17_215248_33aedb8c.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0174.jpg
+    target: <INPUT_ROOT>/2018-03-16_120358_33d453f8.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/JPEG_20180318_134422_1026864567.jpg
+    target: <INPUT_ROOT>/2026-04-15_194802_343b5799.jpg
+    timestamp source: mtime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0170.jpg
+    target: <INPUT_ROOT>/2018-03-16_011401_3a50275f.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0199.jpg
+    target: <INPUT_ROOT>/2018-03-18_134418_4d68605d.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0200.jpg
+    target: <INPUT_ROOT>/2018-03-18_143910_51660b37.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0190.jpg
+    target: <INPUT_ROOT>/2018-03-16_214539_59adf158.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/JPEG_20180319_123935_715986013.jpg
+    target: <INPUT_ROOT>/2026-04-15_194802_5f1bd781.jpg
+    timestamp source: mtime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0182.jpg
+    target: <INPUT_ROOT>/2018-03-16_185449_69029a98.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0202.jpg
+    target: <INPUT_ROOT>/2018-03-18_145542_71a7b2cc.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0198.jpg
+    target: <INPUT_ROOT>/2018-03-17_215404_7e826e45.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0169.jpg
+    target: <INPUT_ROOT>/2018-03-16_011359_83ed713e.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0166.jpg
+    target: <INPUT_ROOT>/2018-03-16_011323_86dd78e0.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/corrupt.jpg
+    target: <INPUT_ROOT>/2026-04-15_194802_8a2d495a.jpg
+    timestamp source: mtime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0176.jpg
+    target: <INPUT_ROOT>/2018-03-16_133507_952d36c3.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0171.jpg
+    target: <INPUT_ROOT>/2018-03-16_120216_98cb50b5.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/JPEG_20180318_143915_1770235956.jpg
+    target: <INPUT_ROOT>/2026-04-15_194802_b553b864.jpg
+    timestamp source: mtime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0179.jpg
+    target: <INPUT_ROOT>/2018-03-16_133626_b5b42107.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0184.jpg
+    target: <INPUT_ROOT>/2018-03-16_195027_cabafb63.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0177.jpg
+    target: <INPUT_ROOT>/2018-03-16_133530_d46c1e65.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0181.jpg
+    target: <INPUT_ROOT>/2018-03-16_133813_d4ab324b.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0196.jpg
+    target: <INPUT_ROOT>/2018-03-17_215310_d50a1a94.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0197.jpg
+    target: <INPUT_ROOT>/2018-03-17_215357_dde36ca8.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0185.jpg
+    target: <INPUT_ROOT>/2018-03-16_202840_df1302c5.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0203.jpg
+    target: <INPUT_ROOT>/2018-03-19_122545_e5e2b418.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0180.jpg
+    target: <INPUT_ROOT>/2018-03-16_133628_e62ba046.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0193.jpg
+    target: <INPUT_ROOT>/2018-03-17_124445_e7bc75e8.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0188.jpg
+    target: <INPUT_ROOT>/2018-03-16_210617_f239c36f.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0202_1.jpg
+    target: <INPUT_ROOT>/2018-03-18_145542_f5b8fdef.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0186.jpg
+    target: <INPUT_ROOT>/2018-03-16_202919_f5d2e46a.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0172.jpg
+    target: <INPUT_ROOT>/2018-03-16_120310_fbee0810.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0201.jpg
+    target: <INPUT_ROOT>/2018-03-18_145540_fc3846b8.jpg
+    timestamp source: exif_datetime
+  [rename]
+    source: <INPUT_ROOT>/IMAG0191.jpg
+    target: <INPUT_ROOT>/2018-03-16_214608_ff241e14.jpg
+    timestamp source: exif_datetime
+
+Corrupt files
+  None
+
+Contextual groups
+  0443bb567192afd27f32fb64324d4fd57bf143ca2eeec683d22f61616f05fbdf
+    <INPUT_ROOT>/IMAG0176.jpg
+    <INPUT_ROOT>/IMAG0177.jpg
+    <INPUT_ROOT>/IMAG0178.jpg
+    <INPUT_ROOT>/IMAG0179.jpg
+    <INPUT_ROOT>/IMAG0180.jpg
+    <INPUT_ROOT>/IMAG0181.jpg
+  139056517086cb54ffcdf2f18fe3a8488c5e132a57fbb4c51730069ff51f8680
+    <INPUT_ROOT>/IMAG0184.jpg
+  21e64ce7d4038ab0964fbcfdce9a4eb07713cdd8a38252ea0b21a6cb06c6be4d
+    <INPUT_ROOT>/IMAG0201.jpg
+    <INPUT_ROOT>/IMAG0202.jpg
+    <INPUT_ROOT>/IMAG0202_1.jpg
+  2fc998eaf624cc65f61f34052b09a10cb01f591a858313b86f9c47114cca528f
+    <INPUT_ROOT>/IMAG0200.jpg
+  5134bc9aab21a98e9ff78d4113ca7b93ec2d912b39e8ddb39e68ec69b2c495a7
+    <INPUT_ROOT>/IMAG0199.jpg
+  52a748fdee07b0e3bff7d3ed34a0359f00b8f19caf0a50d25a4649836ae69092
+    <INPUT_ROOT>/IMAG0189.jpg
+    <INPUT_ROOT>/IMAG0190.jpg
+    <INPUT_ROOT>/IMAG0191.jpg
+  5f27275a91c64511d65d0811d36569beebb46dc27eac7d88df6f5521999b28eb
+    <INPUT_ROOT>/IMAG0193.jpg
+  61b6958fcc7eb7b6fe367903f0bdfae0af810959c8eafaf2c020c2d89652a477
+    <INPUT_ROOT>/IMAG0187.jpg
+    <INPUT_ROOT>/IMAG0188.jpg
+  8736d0c10b31d4d7bee30bea540d64c18f8c0c820f79ce71ee2499cad8fb71b2
+    <INPUT_ROOT>/IMAG0204.jpg
+  8fa520dbf189bffb4eb59329ef990c19ed9bbf8310f59b0e02e9e6d54b0894a2
+    <INPUT_ROOT>/IMAG0166.jpg
+    <INPUT_ROOT>/IMAG0167.jpg
+    <INPUT_ROOT>/IMAG0168.jpg
+    <INPUT_ROOT>/IMAG0169.jpg
+    <INPUT_ROOT>/IMAG0170.jpg
+    <INPUT_ROOT>/duplicates/IMAG0166.jpg
+    <INPUT_ROOT>/duplicates/IMAG0167.jpg
+    <INPUT_ROOT>/duplicates/IMAG0168.jpg
+    <INPUT_ROOT>/nested/level1/IMAG0169.jpg
+    <INPUT_ROOT>/nested/level1/IMAG0170.jpg
+  9103f82aa9c72a5502a83bc71cce0a3f8d3d7abd504cb2ad8485509b40003a62
+    <INPUT_ROOT>/IMAG0182.jpg
+    <INPUT_ROOT>/IMAG0183.jpg
+  adea8e1b6d455e34d9d50b3db08bd003be9a09e0308f8881c1e6ca11db101ede
+    <INPUT_ROOT>/JPEG_20180316_195505_111704202.jpg
+    <INPUT_ROOT>/JPEG_20180318_134422_1026864567.jpg
+    <INPUT_ROOT>/JPEG_20180318_143915_1770235956.jpg
+    <INPUT_ROOT>/JPEG_20180319_123935_715986013.jpg
+    <INPUT_ROOT>/corrupt.jpg
+  be7e57412bf7a0b6a3f4509f9d0430f2220b0a38b9716b4e109cfdc62f4ec237
+    <INPUT_ROOT>/IMAG0194.jpg
+    <INPUT_ROOT>/IMAG0195.jpg
+    <INPUT_ROOT>/IMAG0196.jpg
+    <INPUT_ROOT>/IMAG0197.jpg
+    <INPUT_ROOT>/IMAG0198.jpg
+  c0c386157ef1851848d56db3ca73f3cab0af5b4a2a6ec91afb8dba31b670dd0a
+    <INPUT_ROOT>/IMAG0203.jpg
+  d0ecdd05b0996ccad5afcf8450aaf8b1dcf648c5e01262d4ed70199caa24fa5d
+    <INPUT_ROOT>/IMAG0185.jpg
+    <INPUT_ROOT>/IMAG0186.jpg
+  e95006ab3e8ce0c35b7660c6384f394819f32e642630e35bdf4026069cfcaf44
+    <INPUT_ROOT>/IMAG0171.jpg
+    <INPUT_ROOT>/IMAG0172.jpg
+    <INPUT_ROOT>/IMAG0173.jpg
+    <INPUT_ROOT>/IMAG0174.jpg
+    <INPUT_ROOT>/nested/level1/IMAG0171.jpg

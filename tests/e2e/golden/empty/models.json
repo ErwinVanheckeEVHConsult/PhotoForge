@@ -1,0 +1,17 @@
+{
+  "contextual_grouping": {
+    "groups": []
+  },
+  "plan_result": {
+    "actions": [],
+    "corrupt_files": [],
+    "records": []
+  },
+  "scan_result": {
+    "issues": [],
+    "records": [],
+    "skipped": [],
+    "supported_files_processed": 0,
+    "total_entries_seen": 0
+  }
+}

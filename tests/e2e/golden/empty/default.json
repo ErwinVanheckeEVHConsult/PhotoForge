@@ -1,0 +1,15 @@
+{
+  "actions": [],
+  "corrupt_files": [],
+  "records": [],
+  "summary": {
+    "collisions": 0,
+    "corrupt_file_count": 0,
+    "duplicate_groups": 0,
+    "planned_moves": 0,
+    "planned_renames": 0,
+    "planned_skips": 0,
+    "total_duplicates": 0,
+    "total_files_processed": 0
+  }
+}
