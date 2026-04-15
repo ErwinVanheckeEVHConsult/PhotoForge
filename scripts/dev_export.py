@@ -58,7 +58,15 @@ def generate_git_status() -> None:
     if filtered:
         output_lines.append("")
         output_lines.append("Other changes:")
-        output_lines.extend(filtered)
+        unstaged: list[str] = [
+            line for line in filtered
+            if not (len(line) > 0 and line[0] != " ")
+        ]
+
+        if unstaged:
+            output_lines.append("")
+            output_lines.append("Unstaged changes:")
+            output_lines.extend(unstaged)
 
     GIT_OUTPUT.write_text("\n".join(output_lines), encoding="utf-8")
 
