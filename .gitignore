@@ -208,9 +208,6 @@ marimo/_lsp/
 __marimo__/
 
 # Test files
-test_*.py
-testdata/ 
-test_*.txt
 report.txt
 git-status.txt
 tree.txt
