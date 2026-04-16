@@ -11,7 +11,7 @@ The goal is to ensure that:
 * no behavior is undocumented
 * no documentation contradicts implementation
 
-Documentation must be treated as a **verified representation of the system**, not a best-effort description.
+Documentation must be treated as a verified representation of the system, not a best-effort description.
 
 ---
 
@@ -34,21 +34,32 @@ A Python file under:
 src/photoforge/
 ``
 
+Only Python source files (*.py) are considered modules.
+
+Directories, non-Python files, and cache artifacts must be ignored.
+
+---
+
 ### Module Documentation
 
-A markdown file under:
-
-``
-ProjectDocs/<module>.md
-``
+A markdown file under ProjectDocs/ corresponding to the module path under src/photoforge/.
 
 Mapping rule:
 
-``
-<module>.py → ProjectDocs/<module>.md
-``
+``src/photoforge/<path>/<module>.py``
+→ ``ProjectDocs/<path>/<module>.md``
+
+Examples:
+
+src/photoforge/scanner.py
+→ ProjectDocs/scanner.md
+
+src/photoforge/metadata_extractors/heic.py
+→ ProjectDocs/metadata_extractors/heic.md
 
 This mapping is mandatory.
+
+Any deviation from this mapping is a validation failure.
 
 ---
 
@@ -86,8 +97,8 @@ This classification determines documentation depth.
 
 If documentation and code differ:
 
-→ the code is correct
-→ the documentation must be updated
+* the code is correct
+* the documentation must be updated
 
 ---
 
@@ -119,6 +130,8 @@ If any step detects a failure condition, validation must stop immediately and re
 
 No further steps may be executed after a blocking failure is detected.
 
+---
+
 ### Step 0 — Freeze Validation Scope
 
 The validation scope is defined strictly as:
@@ -126,13 +139,16 @@ The validation scope is defined strictly as:
 * all modules under src/photoforge/
 * all corresponding module documentation
 * generic documentation:
+
   * README.md
   * SPEC.md
   * ProjectDocs/architecture.md
 
-No additional files may be included or excluded during validation.
+Only Python source files (*.py) are considered modules.
 
 Scope must not change once validation begins.
+
+---
 
 ### Step 1 — Enumerate Modules
 
@@ -150,18 +166,20 @@ This list defines the complete validation scope.
 
 For each module:
 
-``
-<module>.py → ProjectDocs/<module>.md
-``
+``src/photoforge/<path>/<module>.py``
+→ ``ProjectDocs/<path>/<module>.md``
 
 Check:
 
 * documentation file exists
+* relative path matches module path exactly
 * file name matches module name exactly
 
-Failure condition:
+Failure conditions:
 
 * missing documentation file
+* mismatched relative path
+* mismatched file name
 
 ---
 
@@ -169,11 +187,13 @@ Failure condition:
 
 Each module must be classified as:
 
-#### CORE
-
-Defines core system behavior.
+CORE — defines core system behavior
+BOUNDARY — defines orchestration or external interaction
+INTERNAL — defines supporting functionality
 
 Examples:
+
+CORE:
 
 * scanner
 * planner
@@ -181,25 +201,18 @@ Examples:
 * pipeline
 * model
 
-#### BOUNDARY
-
-Defines orchestration or external interaction.
-
-Examples:
+BOUNDARY:
 
 * cli
 * reporter
 * operations
 
-#### INTERNAL
-
-Defines supporting functionality.
-
-Examples:
+INTERNAL:
 
 * metadata
 * exif
 * hashing
+* metadata_extractors/*
 
 This classification must be reflected in the documentation.
 
@@ -207,20 +220,14 @@ This classification must be reflected in the documentation.
 
 ### Step 4 — Validate Module Documentation
 
-#### All modules
+All modules:
 
-Check:
+* must reflect current implementation
+* must not contradict code
+* must not contain outdated behavior
+* must not omit implemented behavior
 
-* reflects current implementation
-* no contradictions with code
-* no outdated behavior
-* no undocumented behavior
-
----
-
-#### CORE modules
-
-Must include:
+CORE modules must include:
 
 * responsibilities
 * full behavior description
@@ -228,22 +235,14 @@ Must include:
 * invariants
 * integration boundaries
 
----
-
-#### BOUNDARY modules
-
-Must include:
+BOUNDARY modules must include:
 
 * responsibilities
 * integration points
 * explicit transformations (if any)
 * clear boundaries
 
----
-
-#### INTERNAL modules
-
-Must include:
+INTERNAL modules must include:
 
 * purpose
 * responsibilities
@@ -251,7 +250,7 @@ Must include:
 * determinism constraints
 * explicit non-responsibilities
 
-Must not:
+INTERNAL modules must not:
 
 * define system-level behavior
 * duplicate higher-level documentation
@@ -262,14 +261,14 @@ Must not:
 
 The following documents must always be validated:
 
-* `README.md`
-* `SPEC.md`
-* `ProjectDocs/architecture.md`
+* README.md
+* SPEC.md
+* ProjectDocs/architecture.md
 
 Check:
 
-* consistent with implementation
-* consistent with module documentation
+* consistency with implementation
+* consistency with module documentation
 * no contradictions
 * no missing behavior
 
@@ -279,42 +278,49 @@ Check:
 
 Construct mapping:
 
-``
-<module>.py → <module>.md → referenced in:
-    - README.md
-    - SPEC.md
-    - architecture.md
-``
+``src/photoforge/<path>/<module>.py``
+→ ``ProjectDocs/<path>/<module>.md``
+→ referenced in generic docs where required by tier
 
-Each module must be referenced in at least one of:
+Reference requirements:
 
-* README.md
-* SPEC.md
-* architecture.md
-
-If a module defines system-level behavior, it must be referenced in:
+CORE modules must be referenced in:
 
 * SPEC.md
-* architecture.md
+* ProjectDocs/architecture.md
 
-Failure conditions:
+BOUNDARY modules must be referenced in:
 
-* module has no references in generic docs
-* module defines behavior but is not referenced in SPEC.md or architecture.md
+* ProjectDocs/architecture.md
+
+Additionally:
+
+If a BOUNDARY module performs transformations that affect:
+
+* planner input
+* pipeline orchestration
+* output rendering
+
+then it must also be referenced in:
+
+* SPEC.md
+
+INTERNAL modules:
+
+* do not require direct reference in generic docs
+* must not introduce system-level behavior in generic documentation
 
 ---
 
-### Step 7 — Detect Missing Documentation
+### Step 7 — Detect Coverage Gaps
 
-If a module:
+Identify modules where documentation exists but does not describe all implemented behavior.
 
-* has no documentation
-* or has behavior not documented
+If detected:
 
-Then:
+* extend existing documentation
 
-* create new documentation
-* or extend existing documentation
+Missing documentation files must already have been caught in Step 2.
 
 ---
 
@@ -370,16 +376,14 @@ Before release:
 
 ## Final Rule
 
-Documentation is considered valid if and only if:
+Documentation is valid if and only if:
 
 * every module is documented
 * documentation matches implementation
 * no behavior is undocumented
 * no contradictions exist across documents
 
-If any of these conditions fail:
+If any condition fails:
 
-→ documentation is invalid
-→ release is blocked
-
----
+documentation is invalid
+release is blocked

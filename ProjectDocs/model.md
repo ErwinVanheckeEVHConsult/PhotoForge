@@ -1,4 +1,4 @@
-# PhotoForge v0.3 — Model Contract
+# PhotoForge — Model Contract
 
 ## Purpose
 

@@ -1,4 +1,4 @@
-# PhotoForge — Planner Core
+# PhotoForge — Planner
 
 ## Purpose
 
@@ -217,11 +217,20 @@ Duplicates do not produce actions.
 
 ---
 
-### 10. Final Ordering
+### 10. Output Ordering
 
-- `records` sorted by path
-- `actions` sorted by `source_path`
-- `corrupt_files` sorted by path
+Planner output is deterministic but not globally sorted.
+
+Ordering rules:
+
+- duplicate groups are processed in lexicographic SHA-256 order
+- records within each group are processed in lexicographic path order
+
+Emission rules:
+
+- `records` are emitted in duplicate-group iteration order
+- `actions` are emitted in canonical-record group iteration order
+- `corrupt_files` are sorted lexicographically by path
 
 ---
 
@@ -253,6 +262,15 @@ For identical input:
 - identical target paths
 - identical action classification
 - identical output ordering
+
+The planner output is deterministic because:
+
+- input records are sorted lexicographically by path before grouping
+- duplicate groups are processed in lexicographic SHA-256 order
+- records within each group are sorted lexicographically by path
+- `corrupt_files` are sorted by path before inclusion in `PlanResult`
+
+No final global sort is applied to `records` or `actions`.
 
 The planner must not depend on:
 

@@ -45,21 +45,63 @@ photoforge <input_path> [--output <output_path>] [--json] [--apply] [--context]
 
 ## 3. Pipeline Execution
 
-The system executes the following pipeline:
+Current end-to-end CLI execution is:
 
-``
-scan_directory(input_path) -> ScanResult
+1. CLI validates input and output paths
 
-CLI:
-    derive CorruptFile from ScanResult.skipped
+2. CLI performs an initial scan:
+   scan_directory(input_path)
 
-run_pipeline(...):
-    plan_files(records, corrupt_files) -> PlanResult
-    compute_contextual_grouping(records) -> ContextualGrouping
+3. CLI derives CorruptFile objects from skipped entries where:
+   reason starts with "corrupt_"
 
-reporter(...):
-    render output
-``
+4. CLI invokes:
+   run_pipeline(
+       input_path,
+       output_path=...,
+       corrupt_files=...
+   )
+
+5. run_pipeline(...) performs a second scan:
+   scan_directory(input_path)
+
+6. run_pipeline(...) extracts:
+   records = scan_result.records
+
+7. run_pipeline(...) computes contextual grouping:
+   grouping = build_contextual_grouping(records)
+
+8. run_pipeline(...) invokes planner:
+   plan_files(
+       records,
+       output_path=...,
+       corrupt_files=...
+   )
+
+9. run_pipeline(...) returns:
+   PlanResult, ContextualGrouping
+
+10. CLI renders output using:
+    - PlanResult
+    - ContextualGrouping
+
+11. CLI optionally executes actions if --apply is enabled
+
+### Double-Scan Behavior
+
+The system performs two independent scans:
+
+1. CLI scan:
+   - used for corrupt-file derivation
+   - operates on ScanResult.skipped
+
+2. Pipeline scan:
+   - used for planning and grouping
+   - operates on ScanResult.records
+
+These scans are intentionally independent.
+
+The pipeline does not consume or reuse the CLI scan result.
 
 ---
 
@@ -118,6 +160,22 @@ Behavior:
 - file is recorded as skipped with reason `corrupt_*`
 - `ScanIssue` is recorded
 
+### Corrupt File Derivation
+
+CorruptFile objects are derived exclusively in the CLI layer.
+
+Rules:
+
+- derived from SkippedFile entries
+- only entries with reason starting with "corrupt_" are included
+- mapped as:
+  - path → path
+  - reason → error_type
+
+The pipeline does not derive or interpret corrupt files.
+
+CorruptFile objects are passed to the planner via keyword arguments.
+
 ---
 
 ## 6. Corrupt File Propagation
@@ -172,6 +230,21 @@ Rules:
 - files grouped by identical SHA-256
 - one group per unique hash
 - groups sorted deterministically
+
+### Grouping and Planning Separation
+
+Contextual grouping:
+
+- is computed from the complete set of valid FileRecord objects
+- is independent from duplicate grouping and canonical selection
+- does not influence planner behavior
+
+Planner:
+
+- operates only on FileRecord and CorruptFile inputs
+- is not affected by contextual grouping
+
+Grouping and planning are parallel outputs of the pipeline.
 
 ---
 
