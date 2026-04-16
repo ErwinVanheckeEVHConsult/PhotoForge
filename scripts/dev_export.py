@@ -97,32 +97,44 @@ def generate_git_status() -> None:
 
     GIT_OUTPUT.write_text("\n".join(output_lines), encoding="utf-8")
 
-def archive_markdown() -> None:
-    source_root = PROJECT_ROOT
-    tar_path = PROJECT_ROOT / "archive" / "docs.tar.gz"
+def archive_sources(kind: str = "Docs") -> None:
+    archive_name = kind.lower()
+    tar_path = PROJECT_ROOT / "archive" / f"{archive_name}.tar.gz"
 
-    excluded_roots = {
-        PROJECT_ROOT / "ProjectDocs" / "milestones",
-        PROJECT_ROOT / "ProjectDocs" / "planning-proposals",
-        PROJECT_ROOT / "ProjectDocs" / "templates",
-    }
+    excluded_roots: set[Path]
+
+    if kind == "Docs":
+        source_root = PROJECT_ROOT
+        pattern = "*.md"
+        excluded_roots = {
+            PROJECT_ROOT / "ProjectDocs" / "milestones",
+            PROJECT_ROOT / "ProjectDocs" / "planning-proposals",
+            PROJECT_ROOT / "ProjectDocs" / "templates",
+        }
+    elif kind == "src":
+        source_root = PROJECT_ROOT / "src" / "photoforge"
+        pattern = "*.py"
+        excluded_roots = set()
+    else:
+        raise ValueError("kind must be 'Docs' or 'src'")
 
     gitignore_spec = load_gitignore()
 
     files: list[Path] = sorted(
-        source_root.rglob("*.md"),
+        source_root.rglob(pattern),
         key=lambda p: str(p).lower(),
     )
 
     filtered_files: list[Path] = []
 
     for source_path in files:
-        relative_str = str(source_path.relative_to(source_root))
-
-        if gitignore_spec.match_file(relative_str):
+        if any(source_path.is_relative_to(excluded) for excluded in excluded_roots):
             continue
 
-        if any(source_path.is_relative_to(excluded) for excluded in excluded_roots):
+        relative_to_project = source_path.relative_to(PROJECT_ROOT)
+        relative_str = str(relative_to_project).replace("\\", "/")
+
+        if gitignore_spec.match_file(relative_str):
             continue
 
         if "archive" in source_path.parts:
@@ -137,14 +149,15 @@ def archive_markdown() -> None:
 
     with tarfile.open(tar_path, "w:gz") as tar:
         for source_path in filtered_files:
-            arcname = source_path.relative_to(source_root)
+            arcname = source_path.relative_to(PROJECT_ROOT)
             tar.add(source_path, arcname=arcname)
 
 def main():
     generate_tree("src")
     generate_tree("ProjectDocs")
     generate_git_status()
-    archive_markdown()
+    archive_sources("Docs")
+    archive_sources("src")
 
 if __name__ == "__main__":
     main()
