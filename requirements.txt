@@ -1,0 +1,2 @@
+-e git+https://github.com/ErwinVanheckeEVHConsult/PhotoForge.git@f59ef21505926ae53c318c9d4e7c5b033e68484b#egg=photoforge
+pillow==11.3.0
