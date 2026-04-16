@@ -99,7 +99,7 @@ def generate_git_status() -> None:
 
 def archive_markdown() -> None:
     source_root = PROJECT_ROOT
-    tar_path = PROJECT_ROOT / "archive" / "markdown.tar.gz"
+    tar_path = PROJECT_ROOT / "archive" / "docs.tar.gz"
 
     excluded_roots = {
         PROJECT_ROOT / "ProjectDocs" / "milestones",
