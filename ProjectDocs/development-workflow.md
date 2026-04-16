@@ -17,17 +17,74 @@ This document defines the deterministic workflow for developing, validating, and
 
 ## Document Storage
 
-All generated documents must be stored in fixed locations:
+All generated documents must be stored according to workflow step.
 
-- Planning proposals → ProjectDocs/planning-proposals/
-- Milestones → ProjectDocs/milestones/
-- Milestone checklists → ProjectDocs/milestones/ (alongside milestone documents)
-- Release checklists → ProjectDocs/planning-proposals/ (per version)
-- Changelog → ProjectDocs/changelog.md
+Each folder represents the step in which the document is created or finalized.
+
+- Backlog → ProjectDocs/01-backlog/
+  - backlog.md
+
+- Version scope → ProjectDocs/02-version-scope/
+  - ``v<mmm>.<nnn>-planning-proposal.md``
+
+- Scope approval → ProjectDocs/03-scope-approval/
+  - ``v<mmm>.<nnn>-scope-approval.md``
+
+- Requirements → ProjectDocs/04-requirements/
+  - ``v<mmm>.<nnn>-requirements.md``
+
+- Milestones → ProjectDocs/05-milestones/
+  - ``v<mmm>.<nnn>-milestones.md``
+  - ``v<mmm>.<nnn>-ms<nnn>-<short-title>.md``
+  - ``v<mmm>.<nnn>-ms<nnn>-checklist.md``
+
+- Version documentation → ProjectDocs/09-version-documentation/
+  - ``v<mmm>.<nnn>-release-checklist.md``
+  - ``v<mmm>.<nnn>-release-notes.md``
+  - changelog.md
+
+- Release validation → ProjectDocs/10-release-validation/
+  - validation outputs (if stored)
+
+- Release → ProjectDocs/11-release/
+  - release artifacts (if documented)
+
 - Workflow → ProjectDocs/development-workflow.md
+
 - Templates → ProjectDocs/templates/
 
 All documents must be stored in their defined location. No alternative locations are allowed.
+
+- Workflow steps are authoritative for document storage structure
+
+- Documents must be stored in the folder corresponding to the workflow step in which they are created or finalized
+- No alternative locations are allowed
+- No duplication of documents across steps is allowed
+
+- Folder numbering must follow integer workflow steps only
+- Sub-steps (e.g. 3.5, 6.5) do not create new folders
+
+- New workflow steps may be introduced:
+  - between existing steps
+  - before the first step
+  - after the last step
+
+- When a new top-level step is introduced:
+  - folder numbering must be updated to preserve correct ordering
+  - affected folders must be renamed accordingly
+  - all documents must be moved to the correct step folder
+
+- When a step is renamed:
+  - the corresponding folder must be renamed
+  - all contained documents must remain consistent with the new step definition
+
+- Folder structure must always reflect the current workflow exactly
+  - no legacy structure may remain
+  - no transitional or deprecated folders are allowed
+
+- Renaming and moving folders is considered a required maintenance operation
+  - it is not optional
+  - it must be performed immediately when the workflow changes
 
 ---
 
@@ -36,7 +93,11 @@ All documents must be stored in their defined location. No alternative locations
 All documents must follow deterministic naming rules:
 
 - Planning proposals → `v<mmm>.<nnn>-planning-proposal.md`
+- Scope approval → `v<mmm>.<nnn>-scope-approval.md`
+- Requirements → `v<mmm>.<nnn>-requirements.md`
 - Release checklists → `v<mmm>.<nnn>-release-checklist.md`
+- Release notes → `v<mmm>.<nnn>-release-notes.md`
+- Milestones overview → `v<mmm>.<nnn>-milestones.md`
 - Milestones → `v<mmm>.<nnn>-ms<nnn>-<short-title>.md`
 - Milestone checklists → `v<mmm>.<nnn>-ms<nnn>-checklist.md`
 
@@ -56,7 +117,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 
 ### 1. Maintain Backlog
 
-- Add or refine backlog entries in ProjectDocs/backlog.md
+- Add or refine backlog entries in ProjectDocs/01-backlog/backlog.md
 - Entries must remain minimal and one-line
 - Entries must not include implementation details
 - Entries must not duplicate existing items
@@ -65,7 +126,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 
 ### 2. Define Version Scope
 
-- Select backlog items from ProjectDocs/backlog.md
+- Select backlog items from ProjectDocs/01-backlog/backlog.md
 - Selected items must be explicitly listed in the planning proposal
 - No implicit scope inclusion is allowed
 
@@ -75,7 +136,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
   - All placeholders must be replaced
 
 - Store planning proposal as:
-  - `ProjectDocs/planning-proposals/v<mmm>.<nnn>-planning-proposal.md`
+  - ``ProjectDocs/02-version-scope/v<mmm>.<nnn>-planning-proposal.md``
 
 - Create release checklist using:
   - ProjectDocs/templates/release-checklist-template.md
@@ -83,9 +144,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
   - All placeholders must be replaced
 
 - Store release checklist as:
-  - `ProjectDocs/planning-proposals/v<mmm>.<nnn>-release-checklist.md`
-
-- Scope must be limited strictly to selected backlog items
+  - ``ProjectDocs/09-version-documentation/v<mmm>.<nnn>-release-checklist.md``
 
 ---
 
@@ -95,13 +154,62 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 - Define explicit non-goals
 - Freeze scope before implementation begins
 - No scope changes are allowed after approval
+- Scope must be limited strictly to selected backlog items
+
+- Store approved scope as:
+  - ``ProjectDocs/03-scope-approval/v<mmm>.<nnn>-scope-approval.md``
 
 ---
 
-### 4. Define Milestones
+### 4. Define Requirements
 
-- Break scope into isolated milestones
-- Each milestone must represent a single unit of work
+- Derive requirements from approved scope
+- Approved scope must be decomposed into atomic requirements when defining requirements
+
+- Requirements must:
+  - be explicit
+  - be atomic
+  - be testable
+  - contain no ambiguity
+  - not introduce new scope
+
+- Requirements must not:
+  - infer behavior
+  - assume implementation details
+  - contain implicit logic
+  - be split after definition
+
+- Store requirements as:
+  - ``ProjectDocs/04-requirements/v<mmm>.<nnn>-requirements.md``
+
+### 5. Define Milestones
+
+- Derive milestones from requirements
+- Each milestone must represent a coherent, testable unit of work
+
+- Requirements may be grouped when they belong together and can be developed, tested, and validated as a single unit
+- Requirements must be atomic and must not be split
+
+- All requirements must be fully covered across all milestones
+
+- No requirement behavior may:
+  - be omitted
+  - be duplicated across milestones
+
+- All milestones for the version must be defined before implementation begins
+
+- Create milestones overview using:
+  - ProjectDocs/templates/milestones-template.md
+  - Template structure must not be modified
+  - All placeholders must be replaced
+
+- Store milestones overview as:
+  - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-milestones.md``
+
+- The milestones overview must:
+  - list all milestones exactly once
+  - be ordered by ascending `MS<nnn>`
+  - be updated after each milestone completion
 
 For each milestone:
 
@@ -111,7 +219,7 @@ For each milestone:
   - All placeholders must be replaced
 
 - Store milestone as:
-  - `ProjectDocs/milestones/v<mmm>.<nnn>-ms<nnn>-<short-title>.md`
+  - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-<short-title>.md``
 
 - Create milestone checklist using:
   - ProjectDocs/templates/milestone-checklist-template.md
@@ -119,11 +227,21 @@ For each milestone:
   - All placeholders must be replaced
 
 - Store checklist as:
-  - `ProjectDocs/milestones/v<mmm>.<nnn>-ms<nnn>-checklist.md`
+  - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-checklist.md``
+
+- Consistency rules:
+
+  - Every milestone in the overview must have:
+    - a milestone document
+    - a milestone checklist
+
+  - No milestone may exist outside the overview
+
+  - No milestone may exist in the overview without corresponding files
 
 ---
 
-### 5. Implement Milestones
+### 6. Implement Milestones
 
 - Implement only the defined milestone scope
 - No changes outside milestone scope are allowed
@@ -134,9 +252,13 @@ For each milestone:
   - fully validated
   - fully committed
 
+- A milestone must not be started unless:
+  - all milestones are defined
+  - requirements are complete
+
 ---
 
-### 6. Validate Milestones
+### 7. Validate Milestones
 
 - Validate implementation using the milestone checklist
 
@@ -149,9 +271,22 @@ For each milestone:
   - no unintended side effects exist
   - no scope creep or redesign is introduced
 
+- Confirm:
+  - implementation matches requirements
+  - no undocumented behavior exists
+  - no contradictions between code and documentation exist
+
+- Documentation must be updated to match implementation
+
+- Requirement coverage must be validated using:
+  - milestone "Covered Requirements" sections
+
+- If validation fails:
+  - milestone must not be committed
+
 ---
 
-### 7. Commit Milestones
+### 8. Commit Milestones
 
 - Each milestone must be committed as a single logical unit
 - A commit must not include changes outside the milestone scope
@@ -161,21 +296,31 @@ For each milestone:
 
 ---
 
-### 8. Finalize Version Documentation
+### 9. Finalize Version Documentation
 
 - Update README if changes affect documented behavior or usage
 - Update specification if required
+- Update module documentation if impacted
 
 - Update changelog using:
   - ProjectDocs/templates/changelog-template.md
   - Template structure must not be modified
   - All placeholders must be replaced
 
-- Remove fulfilled backlog entries from ProjectDocs/backlog.md
+- Generate release notes
+- Store release notes as:
+  - ``ProjectDocs/09-version-documentation/v<mmm>.<nnn>-release-notes.md``
+
+- Ensure:
+  - changelog reflects completed milestones only
+  - documentation matches implementation
+  - no outdated behavior remains
+
+- Remove fulfilled backlog entries from ProjectDocs/01-backlog/backlog.md
 
 ---
 
-### 9. Validate Release
+### 10. Validate Release
 
 - Validate release using the release checklist
 
@@ -184,20 +329,30 @@ For each milestone:
 
 - Ensure full consistency between:
   - planning proposal
+  - requirements
+  - milestones overview
   - milestone documents
   - milestone checklists
   - changelog
+  - release notes
   - backlog
 
 - Confirm:
   - scope matches planning proposal
+  - all requirements are implemented
   - all milestones are complete
   - documentation is fully aligned
   - behavior is validated
 
+- If validation produces artifacts:
+  - they must be stored in ProjectDocs/10-release-validation/
+
+- If any condition is not satisfied:
+  - release must be blocked until resolved
+
 ---
 
-### 10. Create Release
+### 11. Create Release
 
 - Tag version in version control
 - Create release entry
@@ -210,9 +365,9 @@ For each milestone:
 
 ---
 
-### 11. Start Next Cycle
+### 12. Start Next Cycle
 
-- Return to ProjectDocs/backlog.md
+- Return to ProjectDocs/01-backlog/backlog.md
 - Select next version scope
 - Repeat workflow from step 1
 
@@ -284,6 +439,6 @@ A milestone is complete when:
 
 The workflow enforces a strict sequence:
 
-backlog → planning → milestones → validation → commit → release
+backlog → scope → approval → requirements → milestones → implementation → validation → commit → release
 
 Each step is deterministic, enforced, and reproducible.
