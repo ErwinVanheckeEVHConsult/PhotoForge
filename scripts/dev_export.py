@@ -114,12 +114,21 @@ def archive_markdown() -> None:
         key=lambda p: str(p).lower(),
     )
 
+    filtered_files: list[Path] = []
+
     for source_path in files:
         relative_str = str(source_path.relative_to(source_root))
 
-        # Apply .gitignore
         if gitignore_spec.match_file(relative_str):
             continue
+
+        if any(source_path.is_relative_to(excluded) for excluded in excluded_roots):
+            continue
+
+        if "archive" in source_path.parts:
+            continue
+
+        filtered_files.append(source_path)
 
     if tar_path.exists():
         tar_path.unlink()
@@ -127,13 +136,7 @@ def archive_markdown() -> None:
     tar_path.parent.mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(tar_path, "w:gz") as tar:
-        for source_path in files:
-            if any(source_path.is_relative_to(excluded) for excluded in excluded_roots):
-                continue
-
-            if "archive" in source_path.parts:
-                continue
-
+        for source_path in filtered_files:
             arcname = source_path.relative_to(source_root)
             tar.add(source_path, arcname=arcname)
 
