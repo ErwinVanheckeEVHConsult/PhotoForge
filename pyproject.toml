@@ -13,7 +13,7 @@ authors = [
   { name = "Erwin Vanhecke", email = "contact@evhconsult.eu" }
 ]
 dependencies = [
-  "Pillow>=10,<12"
+  "Pillow>=12.2.0,<13"
 ]
 keywords = ["photos", "jpeg", "exif", "deduplication", "cli"]
 classifiers = [
