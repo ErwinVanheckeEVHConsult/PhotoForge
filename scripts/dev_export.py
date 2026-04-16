@@ -1,5 +1,7 @@
 from pathlib import Path
 import subprocess
+import tarfile
+import pathspec
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 EXCLUDED_BY_ROOT = {
@@ -9,6 +11,15 @@ EXCLUDED_BY_ROOT = {
 
 #TREE_OUTPUT = PROJECT_ROOT / "tree-src.txt"
 GIT_OUTPUT = PROJECT_ROOT / "git-status.txt"
+
+def load_gitignore() -> pathspec.PathSpec:
+    gitignore = PROJECT_ROOT / ".gitignore"
+
+    if not gitignore.exists():
+        return pathspec.PathSpec.from_lines("gitwildmatch", [])
+
+    patterns = gitignore.read_text(encoding="utf-8").splitlines()
+    return pathspec.PathSpec.from_lines("gitwildmatch", patterns)
 
 
 def generate_tree(subdir:str) -> None:
@@ -86,12 +97,51 @@ def generate_git_status() -> None:
 
     GIT_OUTPUT.write_text("\n".join(output_lines), encoding="utf-8")
 
+def archive_markdown() -> None:
+    source_root = PROJECT_ROOT
+    tar_path = PROJECT_ROOT / "archive" / "markdown.tar.gz"
+
+    excluded_roots = {
+        PROJECT_ROOT / "ProjectDocs" / "milestones",
+        PROJECT_ROOT / "ProjectDocs" / "planning-proposals",
+        PROJECT_ROOT / "ProjectDocs" / "templates",
+    }
+
+    gitignore_spec = load_gitignore()
+
+    files: list[Path] = sorted(
+        source_root.rglob("*.md"),
+        key=lambda p: str(p).lower(),
+    )
+
+    for source_path in files:
+        relative_str = str(source_path.relative_to(source_root))
+
+        # Apply .gitignore
+        if gitignore_spec.match_file(relative_str):
+            continue
+
+    if tar_path.exists():
+        tar_path.unlink()
+
+    tar_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with tarfile.open(tar_path, "w:gz") as tar:
+        for source_path in files:
+            if any(source_path.is_relative_to(excluded) for excluded in excluded_roots):
+                continue
+
+            if "archive" in source_path.parts:
+                continue
+
+            arcname = source_path.relative_to(source_root)
+            tar.add(source_path, arcname=arcname)
 
 def main():
     generate_tree("src")
     generate_tree("ProjectDocs")
     generate_git_status()
-
+    archive_markdown()
 
 if __name__ == "__main__":
     main()
