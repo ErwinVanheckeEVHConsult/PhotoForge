@@ -79,13 +79,18 @@ This means contextual grouping is integrated into the active pipeline, but remai
 Contextual grouping is executed as a deterministic sequence:
 
 1. consume the complete valid `FileRecord` set
-2. derive stable `record_ref` values from each record
-3. apply deterministic ordering
-4. partition the ordered records into groups according to implemented grouping rules
+2. order records by:
+   - primary key: `timestamp` ascending
+   - secondary key: `str(path)` ascending
+3. partition the ordered sequence into maximal consecutive groups
+4. two consecutive records belong to the same group if:
+
+       (current_record.timestamp - previous_record.timestamp).total_seconds() <= 300
+
 5. build `ContextualGroup` objects
 6. assemble the final `ContextualGrouping`
 
-This execution order is fixed conceptually even if helper-level implementation details vary.
+This execution order is fixed conceptually and matches the implemented behavior.
 
 ---
 

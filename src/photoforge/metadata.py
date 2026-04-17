@@ -32,7 +32,7 @@ def normalize_metadata(
     if not isinstance(timestamp, datetime): # type: ignore[unnecessary-isinstance]
         raise TypeError("timestamp must be a datetime")
 
-    if timestamp.tzinfo is not None and timestamp.utcoffset() is not None:
+    if timestamp.tzinfo is not None:
         raise TypeError("timestamp must be naive")
     
     if not isinstance(timestamp_source, str): # type: ignore[unnecessary-isinstance]

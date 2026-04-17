@@ -73,6 +73,7 @@ Rules:
 
 - requires contextual_grouping if include_context=True :contentReference[oaicite:6]{index=6}  
 - deterministic ordering based on input data
+- console output preserves the ordering of `plan_result.records` as provided by the planner
 
 ---
 
@@ -88,6 +89,9 @@ Behavior:
   - actions
   - corrupt_files
   - optional contextual_groups
+
+- JSON output is serialized with fixed indentation of 2 spaces
+- JSON object keys are serialized in lexicographic order
 
 - uses recursive conversion:
 
