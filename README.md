@@ -13,7 +13,8 @@ The system is designed to be:
 
 ## Version
 
-Current version: v0.5 (in development)
+Current version: v0.5
+Status: stable / accepted
 
 This version includes:
 
@@ -145,6 +146,8 @@ Corrupt files:
   4. filesystem `mtime`
 
 - metadata is normalized into a consistent internal representation
+- timestamps must be naive (no timezone)
+- invalid timestamps cause processing failure and are treated as corrupt files
 
 ---
 
@@ -322,5 +325,3 @@ Before applying:
 - review planned actions
 - test on a small dataset
 - ensure backups exist
-
-This is an in-development version.

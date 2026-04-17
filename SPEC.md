@@ -215,6 +215,13 @@ Rules:
 - invalid EXIF values are ignored
 - `mtime` is valid fallback
 
+Normalization rules:
+
+- extracted timestamps are validated
+- timestamps must be naive (no timezone)
+- invalid timestamps cause normalization failure
+- normalization failure results in corrupt file classification
+
 ---
 
 ## 8. Hashing
@@ -325,6 +332,14 @@ Contextual grouping:
 - independent from duplicate grouping
 - does not affect planning
 
+Grouping rule:
+
+- records are ordered by:
+  - timestamp (ascending)
+  - path (lexicographically)
+- consecutive records belong to the same group if:
+  (current.timestamp - previous.timestamp) <= 300 seconds
+
 Included in output only when:
 
 ``
@@ -347,6 +362,11 @@ Includes:
 - actions
 - corrupt_files
 - contextual_groups (optional)
+
+JSON output:
+
+- uses fixed indentation of 2 spaces
+- object keys are serialized in lexicographic order
 
 ---
 
