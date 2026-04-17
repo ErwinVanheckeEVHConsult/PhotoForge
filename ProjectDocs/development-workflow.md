@@ -579,6 +579,92 @@ All workflow-generated documents must strictly use their corresponding templates
 
 ---
 
+## Workflow Enforcement
+
+All workflow rules defined in this document are mandatory and must be strictly enforced.
+
+### General Enforcement
+
+- No workflow rule is advisory
+- All rules are considered mandatory and binding
+- Any violation of a workflow rule constitutes an invalid workflow state
+
+### Blocking Conditions
+
+A workflow step must not be considered complete if:
+
+- any required output is missing
+- any validation condition is not satisfied
+- any applicable workflow rule is violated
+
+Progression to the next workflow step is strictly forbidden while any blocking condition exists.
+
+### Step Transition Enforcement
+
+- A workflow step may only transition to its explicitly defined next step
+- No step may be skipped, repeated out of order, or executed in parallel
+- No implicit or partial transitions are allowed
+
+If transition conditions are not satisfied:
+
+- the workflow must remain in the current step
+- no forward progression is allowed
+
+### Milestone Enforcement
+
+A milestone must not:
+
+- start unless all milestone start conditions are satisfied
+- be validated unless implementation is complete
+- be committed unless validation is complete
+- be considered complete unless all completion conditions are satisfied
+
+A milestone violating any of the above is invalid.
+
+### Validation Enforcement
+
+- All checklist items must be explicitly evaluated
+- No checklist item may remain unresolved
+- Validation results must be binary (pass/fail)
+- Partial validation is not allowed
+
+If any validation criterion fails:
+
+- the milestone or release must be considered invalid
+- progression is blocked until the issue is resolved
+
+### Commit Enforcement
+
+- A milestone commit must include only changes belonging to the current milestone
+- No unrelated or extraneous changes may be included
+- The working tree must be clean after commit
+
+If any of these conditions are not satisfied:
+
+- the commit is invalid
+- the milestone must not be considered complete
+
+### Release Enforcement
+
+A release must not be created unless:
+
+- all milestones are completed
+- all validation criteria are satisfied
+- all documentation is consistent with implementation
+- no blocking condition remains
+
+If any condition is not satisfied:
+
+- release creation is strictly forbidden
+
+### Enforcement Outcome
+
+- Any violation of workflow rules results in a blocked state
+- Blocked states must be resolved before progression
+- No exception, override, or bypass is allowed
+
+---
+
 ## Local Scaffolding Rules
 
 Pre-generated milestone and planning files may exist locally as scaffolding to support workflow efficiency.
