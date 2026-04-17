@@ -15,6 +15,45 @@ This document defines the deterministic workflow for developing, validating, and
 
 ---
 
+## Versioning Policy
+
+All workflow artifacts for a version cycle must use a single deterministic version identifier.
+
+### Version Assignment
+
+- The version identifier must be assigned during Step 2 — Define Version Scope
+- The version identifier assigned in Step 2 becomes the authoritative identifier for the active version cycle
+- No document created for that version cycle may use a different version identifier
+
+### Version Immutability
+
+- The version identifier must not change after Step 3 — Approve Scope
+- After scope approval, the approved version identifier is frozen for the remainder of the version cycle
+- If the version identifier must change, the existing cycle must be discarded or regenerated before implementation begins
+
+### Version Propagation
+
+- All versioned documents created for the version cycle must use the exact same version identifier
+- The version identifier must be consistent across:
+  - planning proposal
+  - scope approval
+  - requirements
+  - milestones overview
+  - milestone documents
+  - milestone checklists
+  - release checklist
+  - release notes
+  - changelog entries for the version
+  - release tag or release entry, if created
+
+### Version Consistency Rules
+
+- No conflicting version identifier may appear across artifacts belonging to the same version cycle
+- Padded document naming format and human-readable version notation must refer to the same version
+- A version cycle must not contain mixed identifiers referring to different major or minor versions
+
+---
+
 ## Document Storage
 
 All generated documents must be stored according to workflow step.
@@ -129,6 +168,8 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 - Select backlog items from ProjectDocs/01-backlog/backlog.md
 - Selected items must be explicitly listed in the planning proposal
 - No implicit scope inclusion is allowed
+- Assign the version identifier for the version cycle
+- The assigned version identifier becomes authoritative for all subsequent versioned artifacts in the cycle
 
 - Create planning proposal using:
   - ProjectDocs/templates/planning-proposal-template.md
@@ -155,6 +196,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 - Freeze scope before implementation begins
 - No scope changes are allowed after approval
 - Scope must be limited strictly to selected backlog items
+- Freeze the version identifier for the remainder of the version cycle
 
 - Store approved scope as:
   - ``ProjectDocs/03-scope-approval/v<mmm>.<nnn>-scope-approval.md``
@@ -394,6 +436,7 @@ For each milestone:
   - planning proposal
   - changelog
   - release checklist
+  - release notes
 
 ---
 
