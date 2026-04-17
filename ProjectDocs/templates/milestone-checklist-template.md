@@ -10,6 +10,7 @@
 
 - Milestone type is explicitly declared
 - Milestone type matches the milestone definition document
+- Milestone uses the correct template for its declared type
 - Type-specific validation rules are applied correctly
 
 ---
@@ -50,6 +51,7 @@ For documentation milestones:
 - All defined rules, structures, or constraints are explicitly present
 - All affected documents reflect the defined rules exactly
 - No ambiguity remains in defined documentation sections
+- No placeholder remains in milestone document or checklist
 
 For implementation milestones:
 
