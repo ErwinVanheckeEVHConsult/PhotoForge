@@ -190,6 +190,43 @@ Rules:
 
 ## Workflow
 
+### Workflow Transition Model
+
+The workflow is strictly sequential.
+
+Rules:
+
+- Each step has exactly one defined next step unless the workflow cycle is complete
+- A step must not transition to any step other than its explicitly defined next step
+- No intermediate, implicit, skipped, parallel, or out-of-order workflow state is allowed
+- If a step fails its required validation or completion conditions, progression is blocked and the workflow remains in the current step until the blocking condition is resolved
+
+Explicit transitions:
+
+- Step 1 — Maintain Backlog → Step 2 — Define Version Scope
+- Step 2 — Define Version Scope → Step 3 — Approve Scope
+- Step 3 — Approve Scope → Step 4 — Define Requirements
+- Step 4 — Define Requirements → Step 5 — Define Milestones
+- Step 5 — Define Milestones → Step 6 — Implement Milestones
+- Step 6 — Implement Milestones → Step 7 — Validate Milestones
+- Step 7 — Validate Milestones → Step 8 — Commit Milestones
+- Step 8 — Commit Milestones → Step 6 — Implement Milestones
+  - only if additional defined milestones remain in the milestones overview for the active version
+- Step 8 — Commit Milestones → Step 9 — Finalize Version Documentation
+  - only if no additional defined milestones remain for the active version
+- Step 9 — Finalize Version Documentation → Step 10 — Validate Release
+- Step 10 — Validate Release → Step 11 — Create Release
+- Step 11 — Create Release → Step 12 — Start Next Cycle
+- Step 12 — Start Next Cycle → Step 1 — Maintain Backlog
+
+State constraints:
+
+- The workflow must always be in exactly one step at a time
+- A step is considered complete only when its required outputs exist and its blocking conditions are satisfied
+- Progression to the next step is allowed only through the explicit transition rules defined above
+
+---
+
 ### 1. Maintain Backlog
 
 - Add or refine backlog entries in ProjectDocs/01-backlog/backlog.md
@@ -550,8 +587,34 @@ A milestone is complete when:
 
 ## Summary
 
-The workflow enforces a strict sequence:
+The workflow enforces this complete ordered sequence:
 
-backlog → scope → approval → requirements → milestones → implementation → validation → commit → release
+1. Maintain Backlog
+2. Define Version Scope
+3. Approve Scope
+4. Define Requirements
+5. Define Milestones
+6. Implement Milestones
+7. Validate Milestones
+8. Commit Milestones
+9. Finalize Version Documentation
+10. Validate Release
+11. Create Release
+12. Start Next Cycle
+
+Transition order is fixed and explicit:
+
+1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+
+After Step 8:
+
+- 8 → 6 if additional defined milestones remain
+- 8 → 9 if no additional defined milestones remain
+
+Then:
+
+- 9 → 10 → 11 → 12 → 1
+
+No implicit transitions are allowed.
 
 Each step is deterministic, enforced, and reproducible.
