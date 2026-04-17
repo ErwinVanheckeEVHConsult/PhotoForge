@@ -117,6 +117,16 @@ Backlog hygiene rules:
 - Deterministically rename exported files to preserve scope in flat source contexts
 - Include docs, templates, specs, and source modules in the export bundle
 - Refresh ChatGPT source bundle after each validated milestone commit or release
+- Migrate documentation structure from artifact-oriented to workflow-step-oriented model
+- Add scope approval template aligned with workflow
+- Add requirements template aligned with workflow
+- Add release notes template aligned with workflow
+- Align milestone template with requirement coverage model
+- Align milestone checklist template with requirement validation rules
+- Align release checklist template with full workflow validation scope
+- Align planning proposal template with updated backlog path
+- Enforce clean working tree rule for milestone completion
+- Enforce separation of milestone work and future-step preparation work
 
 ---
 
