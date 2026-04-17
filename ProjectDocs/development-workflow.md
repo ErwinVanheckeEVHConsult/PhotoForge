@@ -531,6 +531,52 @@ For each milestone:
 - Documents must be generated as complete units
 - Partial or incremental document creation is not allowed
 
+## Template Enforcement
+
+All workflow-generated documents must strictly use their corresponding templates.
+
+### Mandatory Template Usage
+
+- Every document created from a template must use the corresponding file in:
+  - `ProjectDocs/templates/`
+- Template selection must follow explicit mapping rules defined in the workflow
+- No alternative structure may be used when a template exists
+
+### Placeholder Resolution
+
+- All placeholders defined in templates must be fully replaced
+- No placeholder text may remain in any document at the time of validation or commit
+- Presence of unresolved placeholders makes the document invalid
+
+### Structure Preservation
+
+- All required sections defined in templates must be present
+- Section order must not be modified unless explicitly allowed
+- Section semantics must not be altered
+- No required section may be removed
+
+### Type-Based Milestone Template Mapping
+
+- Documentation milestones must use:
+  - `documentation-milestone-template.md`
+- Implementation milestones must use:
+  - `implementation-milestone-template.md`
+
+- A milestone using an incorrect template is invalid
+
+### Enforcement
+
+- Documents not conforming to template rules are considered invalid
+- Invalid documents must not be:
+  - committed
+  - used for validation
+  - considered complete
+
+- Template violations are blocking conditions for:
+  - milestone validation
+  - milestone completion
+  - release validation
+
 ---
 
 ## Local Scaffolding Rules
