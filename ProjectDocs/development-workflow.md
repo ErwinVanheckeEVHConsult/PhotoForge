@@ -206,7 +206,7 @@ Rules:
 
 #### Template Mapping
 
-- documentation → ProjectDocs/templates/milestone-template.md
+- documentation → ProjectDocs/templates/documentation-milestone-template.md
 - implementation → ProjectDocs/templates/implementation-milestone-template.md
 
 Rules:
@@ -233,14 +233,17 @@ Rules:
   - ProjectDocs/templates/milestones-overview-template.md
   - Template structure must not be modified
   - All placeholders must be replaced
-
 - Store milestones overview as:
   - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-milestones.md``
 
 - The milestones overview must:
   - list all milestones exactly once
   - be ordered by ascending `MS<nnn>`
-  - be updated after each milestone completion
+  - not be structurally modified after definition
+    only status annotations (e.g. completion markers) may be added without altering:
+    - ordering
+    - milestone definitions
+    - requirement coverage
 
 For each milestone:
 
