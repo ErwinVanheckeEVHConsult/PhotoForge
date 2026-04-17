@@ -28,10 +28,7 @@ Rules:
 
 ## Affected Documents
 
-List all impacted files:
-
-- ``<file path>``
-- ``<file path>``
+- ``<file path>`` (repeat as needed)
 
 Must explicitly identify:
 
@@ -39,14 +36,11 @@ Must explicitly identify:
 - created documents
 - untouched documents (if relevant)
 
----
-
 ## Definitions
 
 Define all required structures, rules, or constraints.
 
-- ``<rule or structure>``
-- ``<rule or structure>``
+- ``<rule or structure>`` (repeat as needed)
 
 Rules:
 

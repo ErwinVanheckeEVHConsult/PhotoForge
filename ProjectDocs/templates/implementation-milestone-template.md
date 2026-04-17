@@ -46,23 +46,19 @@ Must explicitly identify:
 
 ### Inputs
 
-- ``<input definition>``
-- ``<input definition>``
+- ``<input definition>`` (repeat as needed)
 
 ### Processing Rules
 
-- ``<deterministic transformation rule>``
-- ``<deterministic transformation rule>``
+- ``<deterministic transformation rule>`` (repeat as needed)
 
 ### Outputs
 
-- ``<output definition>``
-- ``<output definition>``
+- ``<output definition>`` (repeat as needed)
 
 ### Edge Cases
 
-- ``<edge case>``
-- ``<edge case>``
+- ``<edge case>`` (repeat as needed)
 
 Rules:
 
