@@ -152,6 +152,42 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 
 ---
 
+## Commit Naming Convention
+
+All milestone and version commits must follow deterministic naming rules.
+
+### Milestone Commit Format
+
+- Milestone commits must use the format:
+  - `MS<nnn>: <short-title>`
+
+Rules:
+
+- `<nnn>` must match the zero-padded milestone identifier defined in the milestones overview
+- `<short-title>` must match the milestone short title
+- The commit message must contain exactly one milestone identifier
+- A milestone commit must not include version-level wording in place of the milestone identifier
+
+### Version Commit Format
+
+- Version-level commits must use the format:
+  - `v<mmm>.<nnn>: <description>`
+
+Rules:
+
+- `<mmm>.<nnn>` must match the active version identifier for the version cycle
+- `<description>` must be deterministic and describe the version-level action being committed
+- A version-level commit must not use a milestone identifier in place of the version identifier
+
+### Commit Constraints
+
+- Every milestone commit must include a milestone identifier
+- Every version-level commit must include a version identifier
+- Commit messages must not use free-form prefixes outside the defined formats
+- Commit naming must remain consistent across the full commit history for the version cycle
+
+---
+
 ## Workflow
 
 ### 1. Maintain Backlog
@@ -365,6 +401,8 @@ For each milestone:
 - Each milestone must be committed as a single logical unit
 - A commit must not include changes outside the milestone scope
 - A milestone must not be split across multiple unrelated commits
+- Milestone commits must use the defined milestone commit format
+- Version-level commits must use the defined version commit format where applicable
 
 - No uncommitted changes may remain after a milestone commit
 
