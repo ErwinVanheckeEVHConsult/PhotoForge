@@ -101,6 +101,8 @@ def archive_sources(kind: str = "Docs") -> None:
     archive_name = kind.lower()
     tar_path = PROJECT_ROOT / "archive" / f"{archive_name}.tar.gz"
 
+    source_root: Path
+    pattern: str
     excluded_roots: set[Path]
 
     if kind == "Docs":
@@ -111,12 +113,19 @@ def archive_sources(kind: str = "Docs") -> None:
             PROJECT_ROOT / "ProjectDocs" / "planning-proposals",
             PROJECT_ROOT / "ProjectDocs" / "templates",
         }
+
     elif kind == "src":
         source_root = PROJECT_ROOT / "src" / "photoforge"
         pattern = "*.py"
-        excluded_roots = set()
+        excluded_roots = set[Path]()
+
+    elif kind == "templates":
+        source_root = PROJECT_ROOT / "ProjectDocs" / "templates"
+        pattern = "*.md"
+        excluded_roots = set[Path]()  # no exclusions
+
     else:
-        raise ValueError("kind must be 'Docs' or 'src'")
+        raise ValueError("kind must be 'Docs', 'src', or 'templates'")
 
     gitignore_spec = load_gitignore()
 
@@ -158,6 +167,7 @@ def main():
     generate_git_status()
     archive_sources("Docs")
     archive_sources("src")
+    archive_sources("templates")
 
 if __name__ == "__main__":
     main()
