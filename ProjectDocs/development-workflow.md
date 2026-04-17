@@ -182,13 +182,44 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 - Store requirements as:
   - ``ProjectDocs/04-requirements/v<mmm>.<nnn>-requirements.md``
 
+---
+
 ### 5. Define Milestones
 
 - Derive milestones from requirements
 - Each milestone must represent a coherent, testable unit of work
 
-- Requirements may be grouped when they belong together and can be developed, tested, and validated as a single unit
+- Each milestone must declare a type
+
+#### Milestone Types
+
+Allowed types:
+
+- documentation
+- implementation
+
+Rules:
+
+- A milestone must not be created without a type
+- A milestone must not mix multiple types
+- A milestone must strictly follow the template associated with its type
+
+#### Template Mapping
+
+- documentation → ProjectDocs/templates/milestone-template.md
+- implementation → ProjectDocs/templates/implementation-milestone-template.md
+
+Rules:
+
+- Template structure must not be modified
+- All placeholders must be replaced
+- All required sections must be present
+
+#### Requirement Mapping
+
 - Requirements must be atomic and must not be split
+- A requirement must not be split across milestone types
+- A requirement must be fully covered within a single milestone
 
 - All requirements must be fully covered across all milestones
 
@@ -199,7 +230,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 - All milestones for the version must be defined before implementation begins
 
 - Create milestones overview using:
-  - ProjectDocs/templates/milestones-template.md
+  - ProjectDocs/templates/milestones-overview-template.md
   - Template structure must not be modified
   - All placeholders must be replaced
 
@@ -213,11 +244,7 @@ Human-readable version notation inside documents may remain unpadded (e.g. v0.4)
 
 For each milestone:
 
-- Create milestone document using:
-  - ProjectDocs/templates/milestone-template.md
-  - Template structure must not be modified
-  - All placeholders must be replaced
-
+- Create milestone document using the template corresponding to its type
 - Store milestone as:
   - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-<short-title>.md``
 
@@ -225,7 +252,6 @@ For each milestone:
   - ProjectDocs/templates/milestone-checklist-template.md
   - Template structure must not be modified
   - All placeholders must be replaced
-
 - Store checklist as:
   - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-checklist.md``
 
@@ -243,9 +269,12 @@ For each milestone:
 
 ### 6. Implement Milestones
 
+- Only implementation-type milestones may modify runtime behavior
+- Documentation-type milestones must not modify runtime behavior
+
 - Implement only the defined milestone scope
 - No changes outside milestone scope are allowed
-- Existing validated behavior must not change
+- Existing validated behavior must not change unless explicitly defined
 
 - A milestone must not be started unless the previous milestone is:
   - fully implemented
