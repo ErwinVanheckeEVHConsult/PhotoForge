@@ -28,11 +28,8 @@ Backlog hygiene rules:
 
 ## File Format Support
 
-- PNG support
-- HEIC / HEIF support
-- RAW formats (CR2, NEF, ARW, etc.)
+- Full processing support for non-JPEG formats
 - TIFF support
-- Video file support (MP4, MOV)
 - Apple Live Photos handling
 
 ---
@@ -88,7 +85,6 @@ Backlog hygiene rules:
 - Extract metadata from filenames
 - Extract metadata from folder names
 - Infer batch context from metadata sources
-- Handling strategies for corrupt files
 - Expose EXIF diagnostics (missing, unreadable, invalid fields)
 
 ---
@@ -117,7 +113,6 @@ Backlog hygiene rules:
 - GitHub Actions (CI)
 - Test coverage expansion
 - Documentation for contributors
-- Versioned releases and changelog
 - Add a scripted procedure to export and flatten project files for ChatGPT source uploads
 - Deterministically rename exported files to preserve scope in flat source contexts
 - Include docs, templates, specs, and source modules in the export bundle
