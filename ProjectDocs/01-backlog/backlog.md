@@ -130,8 +130,10 @@ Backlog hygiene rules:
 - Move CHANGELOG.md to /
 - Align EXIF module placement with metadata_extractors structure
 - Formalize scope-refinement-addendum as part of scope approval workflow
+- Define scope-refinement-template.md
 - Define rules for creation, content, and validation of scope-refinement-addendum
 - Define storage and lifecycle rules for scope-refinement-addendum
+- Define requirements-template.md
 
 ---
 
