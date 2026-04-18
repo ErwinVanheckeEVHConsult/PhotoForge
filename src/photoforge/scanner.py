@@ -3,25 +3,37 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
+from datetime import datetime
+from typing import Callable
 
-from .metadata_extractors import extract_jpeg_timestamp
 from .hashing import compute_sha256
-from .model import FileRecord
 from .metadata import normalize_metadata
+from .metadata_extractors import (
+    extract_heic_timestamp,
+    extract_jpeg_timestamp,
+    extract_png_timestamp,
+    extract_raw_timestamp,
+    extract_video_timestamp,
+)
+from .model import FileRecord
 
-PROCESSABLE_EXTENSIONS = {
-    ".jpg", ".jpeg",
+TimestampExtractor = Callable[[Path, float], tuple[datetime, str]]
+
+EXTRACTOR_MAP: dict[str, TimestampExtractor] = {
+    ".jpg": extract_jpeg_timestamp,
+    ".jpeg": extract_jpeg_timestamp,
+    ".png": extract_png_timestamp,
+    ".heic": extract_heic_timestamp,
+    ".heif": extract_heic_timestamp,
+    ".cr2": extract_raw_timestamp,
+    ".nef": extract_raw_timestamp,
+    ".arw": extract_raw_timestamp,
+    ".mp4": extract_video_timestamp,
+    ".mov": extract_video_timestamp,
 }
 
-RECOGNIZED_EXTENSIONS = {
-    ".png",
-    ".heic", ".heif",
-    ".cr2", ".nef", ".arw",
-    ".mp4", ".mov",
-}
-
-SUPPORTED_EXTENSIONS = PROCESSABLE_EXTENSIONS | RECOGNIZED_EXTENSIONS
+SUPPORTED_EXTENSIONS = set(EXTRACTOR_MAP)
 
 
 @dataclass(frozen=True)
@@ -53,14 +65,6 @@ def normalize_path(path: Path) -> Path:
 
 def is_supported_file(path: Path) -> bool:
     return path.suffix.lower() in SUPPORTED_EXTENSIONS
-
-
-def is_processable_file(path: Path) -> bool:
-    return path.suffix.lower() in PROCESSABLE_EXTENSIONS
-
-
-def is_recognized_file(path: Path) -> bool:
-    return path.suffix.lower() in RECOGNIZED_EXTENSIONS
 
 
 def discover_files(input_path: Path) -> tuple[Path, ...]:
@@ -103,9 +107,8 @@ def scan_directory(input_path: Path) -> ScanResult:
             skipped.append(SkippedFile(path=path, reason="unsupported_extension"))
             continue
 
-        if is_recognized_file(path):
-            skipped.append(SkippedFile(path=path, reason="recognized_format_not_processable"))
-            continue
+        ext = path.suffix.lower()
+        extractor = EXTRACTOR_MAP[ext]
 
         try:
             size, mtime_timestamp = get_file_size_and_mtime(path)
@@ -121,7 +124,7 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            extracted_timestamp, extracted_timestamp_source = extract_jpeg_timestamp(path, mtime_timestamp)
+            extracted_timestamp, extracted_timestamp_source = extractor(path, mtime_timestamp)
 
             normalized_metadata = normalize_metadata(
                 extracted_timestamp,
