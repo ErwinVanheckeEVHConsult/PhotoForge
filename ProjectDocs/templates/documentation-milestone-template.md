@@ -1,4 +1,4 @@
-# Milestone — ``<version>-ms<nnn>`` — ``<short-title>``
+# Milestone - ``<version>-ms<nnn>`` - ``<short-title>``
 
 ## Type
 
