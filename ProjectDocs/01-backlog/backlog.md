@@ -136,6 +136,9 @@ Backlog hygiene rules:
 - Define requirements-template.md
 - Improve release-checklist-template.md
 - Resolve inconsistency between release checklist creation step and storage location in development-workflow.md
+- Convert milestone checklist template validation items to checkbox format
+- Define formal checkbox semantics for milestone checklist validation states
+- Reduce milestone checklist boilerplate without weakening determinism or auditability
 
 ---
 
