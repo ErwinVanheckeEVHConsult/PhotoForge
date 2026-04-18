@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from .exif import extract_timestamp
+from .metadata_extractors import extract_jpeg_timestamp
 from .hashing import compute_sha256
 from .model import FileRecord
 from .metadata import normalize_metadata
@@ -121,7 +121,7 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            extracted_timestamp, extracted_timestamp_source = extract_timestamp(path, mtime_timestamp)
+            extracted_timestamp, extracted_timestamp_source = extract_jpeg_timestamp(path, mtime_timestamp)
 
             normalized_metadata = normalize_metadata(
                 extracted_timestamp,
