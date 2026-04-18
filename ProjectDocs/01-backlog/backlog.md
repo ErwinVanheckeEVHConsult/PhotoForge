@@ -127,7 +127,9 @@ Backlog hygiene rules:
 - Align planning proposal template with updated backlog path
 - Enforce clean working tree rule for milestone completion
 - Enforce separation of milestone work and future-step preparation work
-- Define and enforce runtime version.py lifecycle (``<version>-dev`` → ``<version>-release``)
+- Replace version.py by pyproject.toml
+- Define and enforce runtime pyproject.toml
+- Move CHANGELOG.md to /
 
 ---
 
