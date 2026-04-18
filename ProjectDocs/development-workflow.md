@@ -95,10 +95,13 @@ Each folder represents the step in which the document is created or finalized.
 All documents must be stored in their defined location. No alternative locations are allowed.
 
 - Workflow steps are authoritative for document storage structure
-
-- Documents must be stored in the folder corresponding to the workflow step in which they are created or finalized
-- No alternative locations are allowed
-- No duplication of documents across steps is allowed
+- Documents must be stored in the folder corresponding to the workflow step in which they are created or finalized.
+  Exception:
+  - System documentation must be stored in `ProjectDocs/00-system-documentation/` as defined in the System Documentation section.
+  No alternative locations are allowed outside:
+  - workflow step folders
+  - the system documentation domain
+  - No duplication of documents across steps is allowed
 
 - Folder numbering must follow integer workflow steps only
 - Sub-steps (e.g. 3.5, 6.5) do not create new folders
@@ -124,6 +127,73 @@ All documents must be stored in their defined location. No alternative locations
 - Renaming and moving folders is considered a required maintenance operation
   - it is not optional
   - it must be performed immediately when the workflow changes
+
+---
+
+## System Documentation
+
+Certain documentation artifacts describe system structure, behavior, or validation rules but are not produced as outputs of a specific workflow step.
+
+These artifacts are defined as **system documentation**.
+
+### System Documentation Domain
+
+System documentation includes:
+
+- architecture documentation
+- module-level documentation
+- pipeline and processing documentation
+- data model documentation
+- validation specifications
+
+System documentation is:
+
+- not version-cycle scoped
+- not tied to a specific workflow step
+- not produced as a milestone, requirement, or release artifact
+
+### Storage Location
+
+All system documentation must be stored in:
+
+- `ProjectDocs/00-system-documentation/`
+
+Rules:
+
+- This folder is part of the workflow-governed structure
+- It is not associated with a numbered workflow step
+- It exists outside the sequential workflow execution model
+- Documents in this domain must not be stored in any step-based folder
+
+### Classification Rules
+
+A document belongs to the system documentation domain if:
+
+- it does not correspond to a workflow step output
+- it is not version-specific
+- it is not defined by a workflow template
+- it describes system structure, behavior, or validation rules
+
+A document must not be stored in this domain if it:
+
+- is generated as part of a workflow step
+- is version-scoped
+- is defined by a template tied to a workflow step
+
+### Maintenance Rules
+
+System documentation:
+
+- must remain consistent with implementation
+- must remain consistent with requirements and workflow definitions
+- must not contain placeholders
+- must not contain ambiguous or implicit definitions
+
+System documentation must be updated when:
+
+- implementation changes affect described behavior
+- validation rules change
+- system structure or architecture is modified
 
 ---
 
