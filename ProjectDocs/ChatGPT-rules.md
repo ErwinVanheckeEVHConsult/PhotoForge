@@ -9,7 +9,7 @@ These rules ensure deterministic, high-quality, and implementation-safe outputs.
 ## 1. Formatting Rules (CRITICAL)
 
 - Responses must be copy-paste safe by default
-- Nested fenced code blocks are strictly forbidden
+- Nested fenced code blocks should be properly nested to avoid rendering issues.
 - Markdown must not break rendering in common clients (VSCode, GitHub, ChatGPT UI)
 - When generating `.md` documents:
   - Output must be contained in a single fenced code block
