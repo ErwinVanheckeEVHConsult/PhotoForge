@@ -134,6 +134,8 @@ Backlog hygiene rules:
 - Define rules for creation, content, and validation of scope-refinement-addendum
 - Define storage and lifecycle rules for scope-refinement-addendum
 - Define requirements-template.md
+- Improve release-checklist-template.md
+- Resolve inconsistency between release checklist creation step and storage location in development-workflow.md
 
 ---
 
