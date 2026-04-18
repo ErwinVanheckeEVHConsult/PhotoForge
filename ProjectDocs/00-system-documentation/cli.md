@@ -201,6 +201,11 @@ This means normal CLI execution performs two scans:
 - first scan in CLI for corrupt-file derivation
 - second scan inside `run_pipeline(...)` for planning and grouping
 
+Determinism requirement:
+
+- for the same input directory and filesystem state, the CLI scan and the pipeline scan must produce identical valid `FileRecord` sets
+- no divergence between the two scans is allowed
+
 ---
 
 ## Inputs

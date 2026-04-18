@@ -180,15 +180,17 @@ Execution order in the current implementation is:
 2. grouping
 3. planning
 
-This is an execution-order fact.
+This execution order is explicit and mandatory.
 
-It does **not** imply behavioral dependency of planner on grouping.
+Rules:
 
-The grouping computation is independent from planner behavior:
-
-- planner output does not depend on contextual grouping output
-- contextual grouping is not embedded into planner models
+- contextual grouping is computed before planner invocation
+- planner must not depend on contextual grouping output
+- contextual grouping builder must not depend on planner output
+- contextual grouping is not embedded into `PlanResult`
 - contextual grouping is returned as a separate structural result
+
+This independence is a required contract of the current implementation.
 
 ---
 
@@ -210,6 +212,14 @@ The pipeline owns the scan used for planning and grouping.
 The CLI owns the scan used for corrupt-file derivation.
 
 This is current implementation behavior and must be documented explicitly.
+
+The two scans must produce identical valid `FileRecord` sets for the same input directory and filesystem state.
+
+Rules:
+
+- no divergence between CLI scan results and pipeline scan results is allowed
+- corrupt-file derivation in CLI must remain consistent with the valid-file set used by the pipeline
+- the existence of two scans must not introduce nondeterministic planning behavior
 
 ---
 

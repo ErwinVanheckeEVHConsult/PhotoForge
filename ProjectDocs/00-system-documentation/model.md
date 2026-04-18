@@ -95,7 +95,7 @@ class FileRecord:
 
 #### 1.2 Invariants
 
-- `path` must be absolute
+- `path` is expected to be absolute
 - `size` must be non-negative
 - `sha256` must be a 64-character lowercase hex string
 - `short_hash` must equal `sha256[:8]`
@@ -119,6 +119,11 @@ Not used for:
 
 - corrupt files
 - partial scan failures
+
+Path invariant note:
+
+- the absolute-path property is established by scanner construction
+- it is not validated by model-layer runtime checks
 
 ---
 

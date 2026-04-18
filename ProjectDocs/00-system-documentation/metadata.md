@@ -84,6 +84,14 @@ Important:
 
 - not part of the active pipeline
 - exists only to define abstraction boundary
+- the active pipeline does not call this helper
+
+Current implementation behavior:
+
+- `scanner.py` directly calls `extract_timestamp(...)`
+- `scanner.py` then directly calls `normalize_metadata(...)`
+
+This helper exists only as a future integration boundary and is currently unused by the active pipeline.
 
 ---
 

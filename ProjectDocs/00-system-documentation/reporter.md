@@ -93,6 +93,14 @@ Behavior:
 - JSON output is serialized with fixed indentation of 2 spaces
 - JSON object keys are serialized in lexicographic order
 
+Ordering rules:
+
+- the ordering of `records` in JSON output is preserved from `PlanResult.records`
+- the ordering of `actions` in JSON output is preserved from `PlanResult.actions`
+- the ordering of `corrupt_files` in JSON output is preserved from `PlanResult.corrupt_files`
+- only JSON object keys are re-ordered lexicographically
+- list-valued output is not re-sorted by the reporter
+
 - uses recursive conversion:
 
   - dataclasses → dict
