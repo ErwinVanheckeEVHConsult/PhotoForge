@@ -7,6 +7,43 @@ Versions follow semantic versioning where applicable.
 
 ---
 
+## [0.6.0] - 2026-04-18
+
+### Added v0.6
+
+- Deterministic workflow definition and enforcement
+- Complete template system for workflow-driven documentation
+- System documentation domain (`00-system-documentation`)
+- Explicit workflow enforcement rules and validation boundaries
+
+### Changed v0.6
+
+- Documentation structure aligned with workflow-step-oriented model
+- Templates aligned with requirement coverage and validation rules
+- Milestone and release validation made fully deterministic
+- Documentation updated to match actual implementation across all components
+- Repository structure reorganized to enforce single authoritative location per document type
+
+### Fixed v0.6
+
+- Removed inconsistencies between documentation and implementation
+- Eliminated ambiguous workflow rules and implicit assumptions
+- Corrected ordering and determinism guarantees in pipeline and reporting
+- Resolved duplicate or conflicting milestone definitions
+
+### Removed v0.6
+
+- Backlog items completed by v0.6
+- Obsolete documentation structure from artifact-oriented model
+
+### Notes v0.6
+
+- No runtime behavior changes
+- This release is focused on workflow, documentation, and determinism
+- Establishes a fully consistent and enforceable project baseline for future development
+
+---
+
 ## [0.5.0] - 2026-04-17
 
 ### Added v0.5
