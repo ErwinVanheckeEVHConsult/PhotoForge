@@ -23,6 +23,9 @@ Backlog hygiene rules:
 - Support EXIF timezone fields if present
 - Use filename patterns as fallback timestamp source when EXIF is missing
 - Use folder name patterns as fallback timestamp source when EXIF is missing
+- Classify timestamp inconsistencies as comparable vs non-comparable
+- Infer timezone correction from trusted device clusters
+- Detect event-bounded folders vs mixed-content folders
 
 ---
 
@@ -30,6 +33,7 @@ Backlog hygiene rules:
 
 - Full processing support for non-JPEG formats
 - TIFF support
+- Define TIFF metadata extraction completeness
 - Apple Live Photos handling
 
 ---
@@ -52,6 +56,7 @@ Backlog hygiene rules:
 - Folder-by-event or grouping
 - User-defined filename rules
 - User-defined folder structure rules
+- Support additional filename timestamp patterns
 
 ---
 
@@ -86,6 +91,8 @@ Backlog hygiene rules:
 - Extract metadata from folder names
 - Infer batch context from metadata sources
 - Expose EXIF diagnostics (missing, unreadable, invalid fields)
+- Define metadata source trust model
+- Expose structured timestamp representations in output
 
 ---
 
@@ -104,6 +111,7 @@ Backlog hygiene rules:
 - Google Photos integration
 - Dropbox / OneDrive support
 - Watch mode (auto-process new files)
+- Apple Live Photos handling
 
 ---
 
@@ -120,6 +128,10 @@ Backlog hygiene rules:
 - Replace version.py by pyproject.toml
 - Define and enforce runtime pyproject.toml
 - Move CHANGELOG.md to /
+- Align EXIF module placement with metadata_extractors structure
+- Formalize scope-refinement-addendum as part of scope approval workflow
+- Define rules for creation, content, and validation of scope-refinement-addendum
+- Define storage and lifecycle rules for scope-refinement-addendum
 
 ---
 
