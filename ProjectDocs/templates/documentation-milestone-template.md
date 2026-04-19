@@ -1,7 +1,7 @@
 # Milestone - {{version}}-ms{{nnn}} - {{short-title}}
 
 File name: {{version}}-ms{{nnn}}-{{short-title}}.md
-Commit message: ms{{nnn}}: Milestone definition
+Commit message: MS{{nnn}}: Milestone definition
 
 ---
 
