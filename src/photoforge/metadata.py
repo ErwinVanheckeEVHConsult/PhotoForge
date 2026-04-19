@@ -1,3 +1,5 @@
+# src/photoforge/metadata.py
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,6 +14,26 @@ class ExtractedMetadata:
     naive_timestamp: datetime
     timestamp_source: str
     timezone_offset: timedelta | None = None
+
+
+@dataclass(frozen=True)
+class TimestampComparison:
+    left_source: str
+    right_source: str
+    representation: str
+    left_value: datetime
+    right_value: datetime
+    equal: bool
+
+
+@dataclass(frozen=True)
+class MetadataDiagnostics:
+    comparisons: tuple[TimestampComparison, ...]
+    inconsistent_pairs: tuple[TimestampComparison, ...]
+
+    @property
+    def has_inconsistency(self) -> bool:
+        return bool(self.inconsistent_pairs)
 
 
 @dataclass(frozen=True)
@@ -32,15 +54,11 @@ def normalize_metadata(extracted_metadata: ExtractedMetadata) -> NormalizedMetad
     source = extracted_metadata.timestamp_source
     offset = extracted_metadata.timezone_offset
 
-    # Required validations (non-redundant only)
-
     if naive.tzinfo is not None:
         raise TypeError("naive_timestamp must be naive")
 
     if not source:
         raise ValueError("timestamp_source must not be empty")
-
-    # Representation construction
 
     if offset is None:
         return NormalizedMetadata(
@@ -69,6 +87,95 @@ def normalize_metadata(extracted_metadata: ExtractedMetadata) -> NormalizedMetad
         timezone_offset=offset,
         timezone_aware_timestamp=aware,
         utc_timestamp=utc,
+    )
+
+
+def _primary_representation(metadata: NormalizedMetadata) -> str:
+    if metadata.utc_timestamp is not None:
+        return "utc"
+    if metadata.timezone_aware_timestamp is not None:
+        return "timezone_aware"
+    return "naive"
+
+
+def _comparison_value(metadata: NormalizedMetadata) -> tuple[str, datetime]:
+    representation = _primary_representation(metadata)
+
+    if representation == "utc":
+        utc_value = metadata.utc_timestamp
+        if utc_value is None:
+            raise ValueError("utc representation requires utc_timestamp")
+        return "utc", utc_value
+
+    if representation == "timezone_aware":
+        aware_value = metadata.timezone_aware_timestamp
+        if aware_value is None:
+            raise ValueError(
+                "timezone_aware representation requires timezone_aware_timestamp"
+            )
+        return "utc", aware_value.astimezone(timezone.utc)
+
+    return "naive", metadata.naive_timestamp
+
+
+def compare_metadata_pair(
+    left: NormalizedMetadata,
+    right: NormalizedMetadata,
+) -> TimestampComparison | None:
+    left_representation, left_value = _comparison_value(left)
+    right_representation, right_value = _comparison_value(right)
+
+    if left_representation != right_representation:
+        return None
+
+    return TimestampComparison(
+        left_source=left.timestamp_source,
+        right_source=right.timestamp_source,
+        representation=left_representation,
+        left_value=left_value,
+        right_value=right_value,
+        equal=left_value == right_value,
+    )
+
+
+def build_metadata_diagnostics(
+    candidates: tuple[NormalizedMetadata, ...],
+) -> MetadataDiagnostics:
+    sorted_candidates = tuple(
+        sorted(
+            candidates,
+            key=lambda item: (
+                item.timestamp_source,
+                _primary_representation(item),
+                item.naive_timestamp.isoformat(),
+                item.timezone_aware_timestamp.isoformat()
+                if item.timezone_aware_timestamp is not None
+                else "",
+                item.utc_timestamp.isoformat() if item.utc_timestamp is not None else "",
+            ),
+        )
+    )
+
+    comparisons: list[TimestampComparison] = []
+    inconsistent_pairs: list[TimestampComparison] = []
+
+    for index, left in enumerate(sorted_candidates):
+        for right in sorted_candidates[index + 1 :]:
+            if left.timestamp_source == right.timestamp_source:
+                continue
+
+            comparison = compare_metadata_pair(left, right)
+            if comparison is None:
+                continue
+
+            comparisons.append(comparison)
+
+            if not comparison.equal:
+                inconsistent_pairs.append(comparison)
+
+    return MetadataDiagnostics(
+        comparisons=tuple(comparisons),
+        inconsistent_pairs=tuple(inconsistent_pairs),
     )
 
 
