@@ -1,7 +1,7 @@
-# Milestone - <version>-ms<nnn> - <short-title>
+# Milestone - {{version}}-ms{{nnn}} - {{short-title}}
 
-File name: <version>-ms<nnn>-<short-title>.md
-Commit message: ms<nnn>: Milestone definition
+File name: {{version}}-ms{{nnn}}-{{short-title}}.md
+Commit message: ms{{nnn}}: Milestone definition
 
 ---
 
@@ -124,4 +124,4 @@ Explicitly define what is not changed.
 
 ## Covered Requirements
 
-- R<xxx> — <requirement-name>
+- R{{xxx}} - {{requirement-name}}
