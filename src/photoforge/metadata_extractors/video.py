@@ -1,16 +1,15 @@
-# metadata_extractors/video.py
+# src/photoforge/metadata_extractors/video.py
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
-from ..metadata import ExtractedMetadata
+from ..model import TimestampCandidate
+from .filesystem import extract_filesystem_timestamp_candidates
 
 
-def extract_video_timestamp(path: Path, mtime_timestamp: float) -> ExtractedMetadata:
-    _ = path
-    return ExtractedMetadata(
-        naive_timestamp=datetime.fromtimestamp(mtime_timestamp),
-        timestamp_source="mtime",
-    )
+def extract_video_timestamp(
+    path: Path,
+    mtime_timestamp: float,
+) -> tuple[TimestampCandidate, ...]:
+    return extract_filesystem_timestamp_candidates(path, mtime_timestamp)

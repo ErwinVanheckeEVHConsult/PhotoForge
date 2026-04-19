@@ -1,3 +1,5 @@
+# src/photoforge/scanner.py
+
 from __future__ import annotations
 
 import os
@@ -6,7 +8,7 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from .hashing import compute_sha256
-from .metadata import ExtractedMetadata, normalize_metadata
+from .metadata import normalize_metadata
 from .metadata_extractors import (
     extract_heic_timestamp,
     extract_jpeg_timestamp,
@@ -14,9 +16,10 @@ from .metadata_extractors import (
     extract_raw_timestamp,
     extract_video_timestamp,
 )
-from .model import FileRecord
+from .model import FileRecord, TimestampCandidate
+from .timestamp_resolution import resolve_timestamp_candidates
 
-TimestampExtractor = Callable[[Path, float], ExtractedMetadata]
+TimestampExtractor = Callable[[Path, float], tuple[TimestampCandidate, ...]]
 
 EXTRACTOR_MAP: dict[str, TimestampExtractor] = {
     ".jpg": extract_jpeg_timestamp,
@@ -122,8 +125,9 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            extracted_metadata = extractor(path, mtime_timestamp)
-            normalized_metadata = normalize_metadata(extracted_metadata)
+            extracted_candidates = extractor(path, mtime_timestamp)
+            resolution_result = resolve_timestamp_candidates(extracted_candidates)
+            normalized_metadata = normalize_metadata(resolution_result.primary_candidate)
         except Exception as exc:
             _record_corrupt_file(
                 skipped=skipped,

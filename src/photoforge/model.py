@@ -1,10 +1,49 @@
+# src/photoforge/model.py
+
 from __future__ import annotations
 
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+
+
+@dataclass(frozen=True)
+class TimestampCandidate:
+    source_kind: str
+    source_detail: str
+    naive_timestamp: datetime
+    precision: str
+    timezone_offset: timedelta | None = None
+
+    def __post_init__(self) -> None:
+        if self.source_kind == "":
+            raise ValueError("source_kind must not be empty")
+
+        if self.source_detail == "":
+            raise ValueError("source_detail must not be empty")
+
+        if self.naive_timestamp.tzinfo is not None:
+            raise ValueError("naive_timestamp must be naive")
+
+        if self.precision not in {"date", "datetime"}:
+            raise ValueError("precision must be 'date' or 'datetime'")
+
+
+@dataclass(frozen=True)
+class TimestampResolutionResult:
+    primary_candidate: TimestampCandidate
+    valid_candidates: tuple[TimestampCandidate, ...]
+
+    def __post_init__(self) -> None:
+        if not self.valid_candidates:
+            raise ValueError("valid_candidates must not be empty")
+
+        if self.primary_candidate != self.valid_candidates[0]:
+            raise ValueError(
+                "primary_candidate must be the first item in valid_candidates"
+            )
 
 
 @dataclass(frozen=True)
@@ -51,6 +90,7 @@ class PlanResult:
     actions: tuple[PlannedAction, ...]
     corrupt_files: tuple[CorruptFile, ...]
 
+
 @dataclass(frozen=True)
 class ContextualGroup:
     group_id: str
@@ -61,8 +101,11 @@ class ContextualGroup:
 
         expected_group_id = compute_group_id(self.member_refs)
         if self.group_id != expected_group_id:
-            raise ValueError("ContextualGroup.group_id does not match the computed group_id" )
-        
+            raise ValueError(
+                "ContextualGroup.group_id does not match the computed group_id"
+            )
+
+
 @dataclass(frozen=True)
 class ContextualGrouping:
     groups: tuple[ContextualGroup, ...]
@@ -81,25 +124,30 @@ class ContextualGrouping:
                 "ContextualGrouping.groups must be sorted lexicographically by group_id"
             )
 
+
 def to_record_ref(file_record: FileRecord) -> str:
     return str(file_record.path)
+
 
 def validate_record_ref(record_ref: str) -> None:
     if record_ref == "":
         raise ValueError("record_ref must not be empty")
-    
+
+
 def _encode_member_refs(member_refs: tuple[str, ...]) -> bytes:
     return json.dumps(
         member_refs,
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode("utf-8")
-    
+
+
 def compute_group_id(member_refs: tuple[str, ...]) -> str:
     """Compute deterministic group_id from canonical JSON encoding of member_refs."""
     validate_member_refs(member_refs)
     canonical_json = _encode_member_refs(member_refs)
     return hashlib.sha256(canonical_json).hexdigest()
+
 
 def validate_member_refs(member_refs: tuple[str, ...]) -> None:
     if not member_refs:
@@ -114,7 +162,8 @@ def validate_member_refs(member_refs: tuple[str, ...]) -> None:
 
     if len(set(member_refs)) != len(member_refs):
         raise ValueError("member_refs must contain unique record_ref values")
-    
+
+
 def validate_contextual_group(group: ContextualGroup) -> None:
     validate_member_refs(group.member_refs)
 

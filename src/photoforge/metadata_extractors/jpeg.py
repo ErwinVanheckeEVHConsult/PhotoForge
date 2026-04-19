@@ -1,14 +1,19 @@
+# src/photoforge/metadata_extractors/jpeg.py
+
 from __future__ import annotations
 
 from pathlib import Path
 
-from ..exif import extract_timestamp
-from ..metadata import ExtractedMetadata
+from ..model import TimestampCandidate
+from .exif import extract_exif_timestamp_candidates
+from .filesystem import extract_filesystem_timestamp_candidates
 
 
-def extract_jpeg_timestamp(path: Path, mtime_timestamp: float) -> ExtractedMetadata:
-    timestamp, source = extract_timestamp(path, mtime_timestamp)
-    return ExtractedMetadata(
-        naive_timestamp=timestamp,
-        timestamp_source=source,
+def extract_jpeg_timestamp(
+    path: Path,
+    mtime_timestamp: float,
+) -> tuple[TimestampCandidate, ...]:
+    return (
+        *extract_exif_timestamp_candidates(path),
+        *extract_filesystem_timestamp_candidates(path, mtime_timestamp),
     )
