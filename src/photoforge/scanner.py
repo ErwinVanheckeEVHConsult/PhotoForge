@@ -4,11 +4,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable
-from datetime import datetime
-from typing import Callable
 
 from .hashing import compute_sha256
-from .metadata import normalize_metadata
+from .metadata import ExtractedMetadata, normalize_metadata
 from .metadata_extractors import (
     extract_heic_timestamp,
     extract_jpeg_timestamp,
@@ -18,7 +16,7 @@ from .metadata_extractors import (
 )
 from .model import FileRecord
 
-TimestampExtractor = Callable[[Path, float], tuple[datetime, str]]
+TimestampExtractor = Callable[[Path, float], ExtractedMetadata]
 
 EXTRACTOR_MAP: dict[str, TimestampExtractor] = {
     ".jpg": extract_jpeg_timestamp,
@@ -124,13 +122,8 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            extracted_timestamp, extracted_timestamp_source = extractor(path, mtime_timestamp)
-
-            normalized_metadata = normalize_metadata(
-                extracted_timestamp,
-                extracted_timestamp_source,
-            )
-
+            extracted_metadata = extractor(path, mtime_timestamp)
+            normalized_metadata = normalize_metadata(extracted_metadata)
         except Exception as exc:
             _record_corrupt_file(
                 skipped=skipped,
