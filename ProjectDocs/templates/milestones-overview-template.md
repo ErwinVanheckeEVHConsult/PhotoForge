@@ -1,6 +1,7 @@
 # Milestones - <version>
 
 File name: <version>-milestones.md
+Commit message: <version>: Milestones Overview
 
 ---
 

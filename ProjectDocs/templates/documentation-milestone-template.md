@@ -1,6 +1,7 @@
 # Milestone - <version>-ms<nnn> - <short-title>
 
 File name: <version>-ms<nnn>-<short-title>.md
+Commit message: ms<nnn>: Milestone definition
 
 ---
 

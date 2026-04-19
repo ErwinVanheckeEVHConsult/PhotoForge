@@ -1,6 +1,7 @@
 # Milestone Checklist — <version>-ms<nnn>
 
 File name: <version>-ms<nnn>-checklist.md
+Commit message: ms<nnn>: Milestone checklist
 
 ---
 
