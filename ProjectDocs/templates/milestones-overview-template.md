@@ -1,7 +1,7 @@
-# Milestones - <version>
+# Milestones - {{version}}
 
-File name: <version>-milestones.md
-Commit message: <version>: Milestones Overview
+File name: {{version}}-milestones.md
+Commit message: {{version}}: Milestones Overview
 
 ---
 
@@ -28,7 +28,7 @@ For each milestone:
 
 ---
 
-### MS<nnn> - <short-title>
+### MS{{nnn}} - {{short-title}}
 
 **Type:**
 
@@ -42,7 +42,7 @@ For each milestone:
 
 **Covered Requirements:**
 
-- R<xxx> — <requirement-name>
+- R{{xxx}} - {{requirement-name}}
 - No partial coverage allowed
 - No duplication across milestones
 
