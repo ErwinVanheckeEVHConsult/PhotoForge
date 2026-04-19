@@ -106,6 +106,9 @@ First:
 2. Identify which sources are required and confirm they are loaded
 3. Summarize the current architecture in ≤5 lines
 4. Summarize the current state in ≤10 lines
-5. Confirm scope before writing
+5. Confirm current scope
+6. Confirm current workflow step
+7. Confirm current milestone
+8. Confirm current milestone state
 
 Wait for confirmation before generating any file.
