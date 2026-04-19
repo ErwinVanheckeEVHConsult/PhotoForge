@@ -1,4 +1,8 @@
-# Milestone - ``<version>-ms<nnn>`` - ``<short-title>``
+# Milestone - <version>-ms<nnn> - <short-title>
+
+File name: <version>-ms<nnn>-<short-title>.md
+
+---
 
 ## Type
 
@@ -139,4 +143,4 @@ Explicitly define what is not changed.
 
 ## Covered Requirements
 
-- ``R<XXX> — <requirement name>``
+- R<xxx> — <requirement-name>

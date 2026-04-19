@@ -1,4 +1,8 @@
-# Milestone Checklist — ``<version>-ms<nnn>``
+# Milestone Checklist — <version>-ms<nnn>
+
+File name: <version>-ms<nnn>-checklist.md
+
+---
 
 ## Type
 
@@ -127,21 +131,4 @@ For implementation milestones:
 
 ## Status
 
-``<DRAFT|READY|PASS|FAIL>``
-
-Rules:
-
-- DRAFT:
-  - Checklist may be incomplete
-  - Validation criteria are not authoritative
-
-- READY:
-  - All checklist sections are completed
-  - No known validation issue remains
-  - Milestone is ready for validation according to development-workflow.md
-
-- PASS:
-  - All validation criteria are satisfied
-
-- FAIL:
-  - One or more validation criteria are not satisfied
+<DRAFT|READY|PASS|FAIL>

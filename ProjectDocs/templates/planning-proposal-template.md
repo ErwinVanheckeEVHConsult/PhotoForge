@@ -1,5 +1,9 @@
 # Planning Proposal  — ``<version>``
 
+File path: <version>-ms<nnn>-planning-proposal.md
+
+---
+
 Starting planning proposal.
 
 ---
