@@ -47,6 +47,44 @@ class TimestampResolutionResult:
 
 
 @dataclass(frozen=True)
+class TimestampComparison:
+    left_source: str
+    right_source: str
+    representation: str
+    left_value: datetime
+    right_value: datetime
+    equal: bool
+
+    def __post_init__(self) -> None:
+        if self.left_source == "":
+            raise ValueError("left_source must not be empty")
+
+        if self.right_source == "":
+            raise ValueError("right_source must not be empty")
+
+        if self.representation not in {"utc", "naive"}:
+            raise ValueError("representation must be 'utc' or 'naive'")
+
+
+@dataclass(frozen=True)
+class MetadataDiagnostics:
+    comparisons: tuple[TimestampComparison, ...]
+    inconsistent_pairs: tuple[TimestampComparison, ...]
+
+    def __post_init__(self) -> None:
+        comparison_set = set(self.comparisons)
+        for comparison in self.inconsistent_pairs:
+            if comparison not in comparison_set:
+                raise ValueError(
+                    "inconsistent_pairs must be a subset of comparisons"
+                )
+
+    @property
+    def has_inconsistency(self) -> bool:
+        return bool(self.inconsistent_pairs)
+
+
+@dataclass(frozen=True)
 class FileRecord:
     path: Path
     size: int
