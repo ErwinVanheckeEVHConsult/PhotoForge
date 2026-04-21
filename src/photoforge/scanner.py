@@ -18,6 +18,8 @@ from .metadata_extractors import (
 )
 from .model import FileRecord, TimestampCandidate
 from .timestamp_resolution import resolve_timestamp_candidates
+from .metadata_extractors import extract_filesystem_timestamp_candidates
+
 
 TimestampExtractor = Callable[[Path, float], tuple[TimestampCandidate, ...]]
 
@@ -125,7 +127,9 @@ def scan_directory(input_path: Path) -> ScanResult:
             continue
 
         try:
-            extracted_candidates = extractor(path, mtime_timestamp)
+            file_candidates = extract_filesystem_timestamp_candidates(path, mtime_timestamp)
+            format_candidates = extractor(path, mtime_timestamp)
+            extracted_candidates = file_candidates + format_candidates 
             resolution_result = resolve_timestamp_candidates(extracted_candidates)
             normalized_metadata = normalize_metadata(resolution_result.primary_candidate)
         except Exception as exc:
