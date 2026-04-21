@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .model import TimestampCandidate
 
@@ -12,7 +12,7 @@ from .model import TimestampCandidate
 class NormalizedMetadata:
     naive_timestamp: datetime
     timestamp_source: str
-    timezone_offset: object | None
+    timezone_offset: timedelta | None
     timezone_aware_timestamp: datetime | None
     utc_timestamp: datetime | None
 
@@ -25,6 +25,9 @@ def normalize_metadata(candidate: TimestampCandidate) -> NormalizedMetadata:
     naive = candidate.naive_timestamp
     source = candidate.source_detail
     offset = candidate.timezone_offset
+
+    if candidate.precision != "datetime":
+        raise ValueError('candidate.precision must be "datetime"')
 
     if naive.tzinfo is not None:
         raise TypeError("naive_timestamp must be naive")
@@ -42,6 +45,9 @@ def normalize_metadata(candidate: TimestampCandidate) -> NormalizedMetadata:
         )
 
     try:
+        if not (-timedelta(hours=23, minutes=59) <= offset <= timedelta(hours=23, minutes=59)):
+            raise ValueError("timezone_offset is invalid")
+        
         tz = timezone(offset)
     except Exception as exc:
         raise ValueError("timezone_offset is invalid") from exc
