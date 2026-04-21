@@ -67,24 +67,6 @@ class TimestampComparison:
 
 
 @dataclass(frozen=True)
-class MetadataDiagnostics:
-    comparisons: tuple[TimestampComparison, ...]
-    inconsistent_pairs: tuple[TimestampComparison, ...]
-
-    def __post_init__(self) -> None:
-        comparison_set = set(self.comparisons)
-        for comparison in self.inconsistent_pairs:
-            if comparison not in comparison_set:
-                raise ValueError(
-                    "inconsistent_pairs must be a subset of comparisons"
-                )
-
-    @property
-    def has_inconsistency(self) -> bool:
-        return bool(self.inconsistent_pairs)
-
-
-@dataclass(frozen=True)
 class FileRecord:
     path: Path
     size: int
@@ -237,3 +219,56 @@ def validate_contextual_grouping(grouping: ContextualGrouping) -> None:
             )
 
         seen_record_refs.update(group.member_refs)
+
+# Add these blocks to src/photoforge/model.py
+
+@dataclass(frozen=True)
+class ExtractionDiagnostic:
+    source_kind: str
+    diagnostic_type: str
+    field_name: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.source_kind == "":
+            raise ValueError("source_kind must not be empty")
+
+        if self.diagnostic_type not in {"missing", "unreadable", "invalid"}:
+            raise ValueError(
+                "diagnostic_type must be 'missing', 'unreadable', or 'invalid'"
+            )
+
+        if self.field_name == "":
+            raise ValueError("field_name must not be empty when provided")
+
+
+# Replace the existing MetadataDiagnostics class with this:
+
+@dataclass(frozen=True)
+class MetadataDiagnostics:
+    extraction_diagnostics: tuple[ExtractionDiagnostic, ...]
+    comparisons: tuple[TimestampComparison, ...]
+    inconsistent_pairs: tuple[TimestampComparison, ...]
+
+    def __post_init__(self) -> None:
+        comparison_set = set(self.comparisons)
+        for comparison in self.inconsistent_pairs:
+            if comparison not in comparison_set:
+                raise ValueError(
+                    "inconsistent_pairs must be a subset of comparisons"
+                )
+
+    @property
+    def has_inconsistency(self) -> bool:
+        return bool(self.inconsistent_pairs)
+
+    @property
+    def has_extraction_diagnostics(self) -> bool:
+        return bool(self.extraction_diagnostics)
+
+
+# Add this near FileRecord / ScanResult models:
+
+@dataclass(frozen=True)
+class FileMetadataDiagnostics:
+    path: Path
+    metadata_diagnostics: MetadataDiagnostics

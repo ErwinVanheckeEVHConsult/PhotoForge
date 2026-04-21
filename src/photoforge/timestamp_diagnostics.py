@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from .metadata import NormalizedMetadata
-from .model import MetadataDiagnostics, TimestampComparison
+from .model import (
+    ExtractionDiagnostic,
+    MetadataDiagnostics,
+    TimestampCandidate,
+    TimestampComparison,
+)
 
 _REPRESENTATION_ORDER: dict[str, int] = {
     "utc": 0,
@@ -14,21 +18,20 @@ _REPRESENTATION_ORDER: dict[str, int] = {
 
 
 def build_metadata_diagnostics(
-    candidates: tuple[NormalizedMetadata, ...],
+    valid_candidates: tuple[TimestampCandidate, ...],
+    extraction_diagnostics: tuple[ExtractionDiagnostic, ...] = (),
 ) -> MetadataDiagnostics:
-    sorted_candidates = tuple(
-        sorted(candidates, key=_candidate_sort_key)
-    )
+    sorted_candidates = tuple(sorted(valid_candidates, key=_candidate_sort_key))
 
     comparisons: list[TimestampComparison] = []
     inconsistent_pairs: list[TimestampComparison] = []
 
     for index, left in enumerate(sorted_candidates):
         for right in sorted_candidates[index + 1 :]:
-            if left.timestamp_source == right.timestamp_source:
+            if left.source_detail == right.source_detail:
                 continue
 
-            comparison = compare_metadata_pair(left, right)
+            comparison = compare_timestamp_candidates(left, right)
             if comparison is None:
                 continue
 
@@ -38,14 +41,15 @@ def build_metadata_diagnostics(
                 inconsistent_pairs.append(comparison)
 
     return MetadataDiagnostics(
+        extraction_diagnostics=tuple(sorted(extraction_diagnostics, key=_diagnostic_sort_key)),
         comparisons=tuple(comparisons),
         inconsistent_pairs=tuple(inconsistent_pairs),
     )
 
 
-def compare_metadata_pair(
-    left: NormalizedMetadata,
-    right: NormalizedMetadata,
+def compare_timestamp_candidates(
+    left: TimestampCandidate,
+    right: TimestampCandidate,
 ) -> TimestampComparison | None:
     left_representation, left_value = _comparison_value(left)
     right_representation, right_value = _comparison_value(right)
@@ -54,8 +58,8 @@ def compare_metadata_pair(
         return None
 
     return TimestampComparison(
-        left_source=left.timestamp_source,
-        right_source=right.timestamp_source,
+        left_source=left.source_detail,
+        right_source=right.source_detail,
         representation=left_representation,
         left_value=left_value,
         right_value=right_value,
@@ -63,67 +67,39 @@ def compare_metadata_pair(
     )
 
 
-def _candidate_sort_key(candidate: NormalizedMetadata) -> tuple[str, int, str, str, str]:
-    comparison_representation, _, _, _ = _comparison_fields(candidate)
+def _candidate_sort_key(candidate: TimestampCandidate) -> tuple[str, int, str, str]:
+    representation = _comparison_representation(candidate)
+    offset_key = (
+        ""
+        if candidate.timezone_offset is None
+        else str(int(candidate.timezone_offset.total_seconds()))
+    )
 
     return (
-        candidate.timestamp_source,
-        _REPRESENTATION_ORDER[comparison_representation],
+        candidate.source_detail,
+        _REPRESENTATION_ORDER[representation],
         candidate.naive_timestamp.isoformat(),
-        candidate.timezone_aware_timestamp.isoformat()
-        if candidate.timezone_aware_timestamp is not None
-        else "",
-        candidate.utc_timestamp.isoformat()
-        if candidate.utc_timestamp is not None
-        else "",
+        offset_key,
     )
 
 
-def _comparison_value(candidate: NormalizedMetadata) -> tuple[str, datetime]:
-    comparison_representation, naive_value, aware_value, utc_value = _comparison_fields(
-        candidate
-    )
-
-    if comparison_representation == "utc":
-        if utc_value is not None:
-            return "utc", utc_value
-
-        if aware_value is None:
-            raise ValueError(
-                "utc comparison representation requires timezone_aware_timestamp or utc_timestamp"
-            )
-
-        return "utc", aware_value.astimezone(timezone.utc)
-
-    return "naive", naive_value
-
-
-def _comparison_fields(
-    candidate: NormalizedMetadata,
-) -> tuple[str, datetime, datetime | None, datetime | None]:
-    if candidate.utc_timestamp is not None and candidate.timezone_aware_timestamp is not None:
-        if candidate.timezone_aware_timestamp.astimezone(timezone.utc) != candidate.utc_timestamp:
-            raise ValueError("timezone_aware_timestamp and utc_timestamp mismatch")
-        
-    if candidate.utc_timestamp is not None:
-        return (
-            "utc",
-            candidate.naive_timestamp,
-            candidate.timezone_aware_timestamp,
-            candidate.utc_timestamp,
-        )
-
-    if candidate.timezone_aware_timestamp is not None:
-        return (
-            "utc",
-            candidate.naive_timestamp,
-            candidate.timezone_aware_timestamp,
-            candidate.utc_timestamp,
-        )
-
+def _diagnostic_sort_key(diagnostic: ExtractionDiagnostic) -> tuple[str, str, str]:
     return (
-        "naive",
-        candidate.naive_timestamp,
-        candidate.timezone_aware_timestamp,
-        candidate.utc_timestamp,
+        diagnostic.source_kind,
+        diagnostic.diagnostic_type,
+        diagnostic.field_name or "",
     )
+
+
+def _comparison_representation(candidate: TimestampCandidate) -> str:
+    if candidate.timezone_offset is not None:
+        return "utc"
+    return "naive"
+
+
+def _comparison_value(candidate: TimestampCandidate) -> tuple[str, datetime]:
+    if candidate.timezone_offset is None:
+        return "naive", candidate.naive_timestamp
+
+    aware = candidate.naive_timestamp.replace(tzinfo=timezone(candidate.timezone_offset))
+    return "utc", aware.astimezone(timezone.utc)

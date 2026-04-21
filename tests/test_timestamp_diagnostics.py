@@ -4,57 +4,53 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from photoforge.metadata import NormalizedMetadata
+from photoforge.model import ExtractionDiagnostic, TimestampCandidate
 from photoforge.timestamp_diagnostics import (
     build_metadata_diagnostics,
-    compare_metadata_pair,
+    compare_timestamp_candidates,
 )
 
 
 def test_compare_naive_candidates() -> None:
-    left = NormalizedMetadata(
+    left = TimestampCandidate(
+        source_kind="filename",
+        source_detail="filename_yyyymmdd_hhmmss",
         naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="filename",
+        precision="datetime",
         timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
     )
-    right = NormalizedMetadata(
+    right = TimestampCandidate(
+        source_kind="filesystem",
+        source_detail="filesystem_mtime",
         naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="folder",
+        precision="datetime",
         timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
     )
 
-    comparison = compare_metadata_pair(left, right)
+    comparison = compare_timestamp_candidates(left, right)
 
     assert comparison is not None
     assert comparison.representation == "naive"
     assert comparison.equal is True
 
 
-def test_compare_timezone_aware_candidates_in_utc_space() -> None:
-    left = NormalizedMetadata(
+def test_compare_utc_candidates() -> None:
+    left = TimestampCandidate(
+        source_kind="exif",
+        source_detail="exif_datetimeoriginal",
         naive_timestamp=datetime(2024, 1, 2, 12, 0, 0),
-        timestamp_source="exif_datetimeoriginal",
+        precision="datetime",
         timezone_offset=timedelta(hours=2),
-        timezone_aware_timestamp=datetime(
-            2024, 1, 2, 12, 0, 0, tzinfo=timezone(timedelta(hours=2))
-        ),
-        utc_timestamp=datetime(2024, 1, 2, 10, 0, 0, tzinfo=timezone.utc),
     )
-    right = NormalizedMetadata(
+    right = TimestampCandidate(
+        source_kind="exif",
+        source_detail="exif_datetime",
         naive_timestamp=datetime(2024, 1, 2, 11, 0, 0),
-        timestamp_source="exif_datetime",
+        precision="datetime",
         timezone_offset=timedelta(hours=1),
-        timezone_aware_timestamp=datetime(
-            2024, 1, 2, 11, 0, 0, tzinfo=timezone(timedelta(hours=1))
-        ),
-        utc_timestamp=datetime(2024, 1, 2, 10, 0, 0, tzinfo=timezone.utc),
     )
 
-    comparison = compare_metadata_pair(left, right)
+    comparison = compare_timestamp_candidates(left, right)
 
     assert comparison is not None
     assert comparison.representation == "utc"
@@ -64,70 +60,58 @@ def test_compare_timezone_aware_candidates_in_utc_space() -> None:
 
 
 def test_mixed_representation_pair_is_not_comparable() -> None:
-    left = NormalizedMetadata(
+    left = TimestampCandidate(
+        source_kind="filename",
+        source_detail="filename_yyyymmdd_hhmmss",
         naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="filename",
+        precision="datetime",
         timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
     )
-    right = NormalizedMetadata(
+    right = TimestampCandidate(
+        source_kind="exif",
+        source_detail="exif_datetimeoriginal",
         naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="exif_datetimeoriginal",
+        precision="datetime",
         timezone_offset=timedelta(hours=2),
-        timezone_aware_timestamp=datetime(
-            2024, 1, 2, 3, 4, 5, tzinfo=timezone(timedelta(hours=2))
-        ),
-        utc_timestamp=datetime(2024, 1, 2, 1, 4, 5, tzinfo=timezone.utc),
     )
 
-    comparison = compare_metadata_pair(left, right)
+    comparison = compare_timestamp_candidates(left, right)
 
     assert comparison is None
 
 
-def test_build_metadata_diagnostics_skips_same_timestamp_source() -> None:
-    left = NormalizedMetadata(
-        naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="exif_datetimeoriginal",
-        timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
-    )
-    right = NormalizedMetadata(
-        naive_timestamp=datetime(2024, 1, 2, 4, 4, 5),
-        timestamp_source="exif_datetimeoriginal",
-        timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
-    )
-
-    diagnostics = build_metadata_diagnostics((left, right))
-
-    assert diagnostics.comparisons == ()
-    assert diagnostics.inconsistent_pairs == ()
-    assert diagnostics.has_inconsistency is False
-
-
-def test_build_metadata_diagnostics_flags_unequal_comparable_pairs() -> None:
-    left = NormalizedMetadata(
-        naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
-        timestamp_source="filename",
-        timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
-    )
-    right = NormalizedMetadata(
-        naive_timestamp=datetime(2024, 1, 2, 3, 4, 6),
-        timestamp_source="folder",
-        timezone_offset=None,
-        timezone_aware_timestamp=None,
-        utc_timestamp=None,
+def test_build_metadata_diagnostics_includes_extraction_diagnostics() -> None:
+    candidates = (
+        TimestampCandidate(
+            source_kind="filesystem",
+            source_detail="filesystem_mtime",
+            naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
+            precision="datetime",
+            timezone_offset=None,
+        ),
+        TimestampCandidate(
+            source_kind="filename",
+            source_detail="filename_yyyymmdd_hhmmss",
+            naive_timestamp=datetime(2024, 1, 2, 3, 4, 6),
+            precision="datetime",
+            timezone_offset=None,
+        ),
     )
 
-    diagnostics = build_metadata_diagnostics((left, right))
+    extraction_diagnostics = (
+        ExtractionDiagnostic(
+            source_kind="exif",
+            diagnostic_type="missing",
+        ),
+    )
 
+    diagnostics = build_metadata_diagnostics(
+        candidates,
+        extraction_diagnostics=extraction_diagnostics,
+    )
+
+    assert diagnostics.extraction_diagnostics == extraction_diagnostics
     assert len(diagnostics.comparisons) == 1
     assert len(diagnostics.inconsistent_pairs) == 1
     assert diagnostics.has_inconsistency is True
-    assert diagnostics.inconsistent_pairs[0].equal is False
+    assert diagnostics.has_extraction_diagnostics is True

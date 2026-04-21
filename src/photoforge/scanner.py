@@ -10,15 +10,17 @@ from typing import Callable, Iterable
 from .hashing import compute_sha256
 from .metadata import normalize_metadata
 from .metadata_extractors import (
+    extract_exif_diagnostics,
+    extract_filesystem_timestamp_candidates,
     extract_heic_timestamp,
     extract_jpeg_timestamp,
     extract_png_timestamp,
     extract_raw_timestamp,
     extract_video_timestamp,
 )
-from .model import FileRecord, TimestampCandidate
+from .model import FileMetadataDiagnostics, FileRecord, TimestampCandidate
+from .timestamp_diagnostics import build_metadata_diagnostics
 from .timestamp_resolution import resolve_timestamp_candidates
-from .metadata_extractors import extract_filesystem_timestamp_candidates
 
 
 TimestampExtractor = Callable[[Path, float], tuple[TimestampCandidate, ...]]
@@ -60,6 +62,7 @@ class ScanResult:
     issues: tuple[ScanIssue, ...]
     total_entries_seen: int
     supported_files_processed: int
+    metadata_diagnostics: tuple[FileMetadataDiagnostics, ...] = ()
 
 
 def normalize_path(path: Path) -> Path:
@@ -96,6 +99,7 @@ def scan_directory(input_path: Path) -> ScanResult:
     records: list[FileRecord] = []
     skipped: list[SkippedFile] = []
     issues: list[ScanIssue] = []
+    metadata_diagnostics: list[FileMetadataDiagnostics] = []
 
     for path in discovered_paths:
         if path.is_symlink():
@@ -129,8 +133,17 @@ def scan_directory(input_path: Path) -> ScanResult:
         try:
             file_candidates = extract_filesystem_timestamp_candidates(path, mtime_timestamp)
             format_candidates = extractor(path, mtime_timestamp)
-            extracted_candidates = file_candidates + format_candidates 
+            extracted_candidates = file_candidates + format_candidates
+
+            exif_diagnostics = ()
+            if ext in {".jpg", ".jpeg"}:
+                exif_diagnostics = extract_exif_diagnostics(path)
+
             resolution_result = resolve_timestamp_candidates(extracted_candidates)
+            diagnostics = build_metadata_diagnostics(
+                resolution_result.valid_candidates,
+                extraction_diagnostics=exif_diagnostics,
+            )
             normalized_metadata = normalize_metadata(resolution_result.primary_candidate)
         except Exception as exc:
             _record_corrupt_file(
@@ -177,12 +190,21 @@ def scan_directory(input_path: Path) -> ScanResult:
             )
         )
 
+        if diagnostics.extraction_diagnostics or diagnostics.comparisons:
+            metadata_diagnostics.append(
+                FileMetadataDiagnostics(
+                    path=path,
+                    metadata_diagnostics=diagnostics,
+                )
+            )
+
     return ScanResult(
         records=tuple(records),
         skipped=tuple(_sorted_skipped(skipped)),
         issues=tuple(_sorted_issues(issues)),
         total_entries_seen=len(discovered_paths),
         supported_files_processed=len(records),
+        metadata_diagnostics=tuple(metadata_diagnostics),
     )
 
 
