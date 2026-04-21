@@ -433,6 +433,7 @@ Rules:
 For each milestone:
 
 - Create milestone document using the template corresponding to its type
+- Milestone document is in status DRAFT
 - Store milestone as:
   - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-<short-title>.md``
 
@@ -440,6 +441,7 @@ For each milestone:
   - ProjectDocs/templates/milestone-checklist-template.md
   - Template structure must not be modified
   - All placeholders must be replaced
+- Milestone checklist is in status ``DRAFT``
 - Store checklist as:
   - ``ProjectDocs/05-milestones/v<mmm>.<nnn>-ms<nnn>-checklist.md``
 
@@ -499,7 +501,10 @@ For each milestone:
   - milestone "Covered Requirements" sections
 
 - If validation fails:
-  - milestone must not be committed
+  - milestone document and checklist must not be committed
+- If validation passes:
+  - status changes to READY
+  - milestone document and checklist must be committed
 
 ---
 
