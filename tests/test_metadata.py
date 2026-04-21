@@ -6,14 +6,14 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from photoforge.metadata import normalize_metadata
+from photoforge.metadata import NormalizedMetadata, normalize_metadata
 from photoforge.model import TimestampCandidate
 
 
-def test_normalize_metadata_without_timezone() -> None:
+def test_normalize_metadata_without_timezone_uses_naive_timestamp() -> None:
     candidate = TimestampCandidate(
         source_kind="filesystem",
-        source_detail="mtime",
+        source_detail="filesystem_mtime",
         naive_timestamp=datetime(2024, 1, 2, 3, 4, 5),
         precision="datetime",
         timezone_offset=None,
@@ -21,14 +21,13 @@ def test_normalize_metadata_without_timezone() -> None:
 
     result = normalize_metadata(candidate)
 
-    assert result.naive_timestamp == datetime(2024, 1, 2, 3, 4, 5)
-    assert result.timestamp_source == "mtime"
-    assert result.timezone_offset is None
-    assert result.timezone_aware_timestamp is None
-    assert result.utc_timestamp is None
+    assert result == NormalizedMetadata(
+        timestamp=datetime(2024, 1, 2, 3, 4, 5),
+        timestamp_source="filesystem_mtime",
+    )
 
 
-def test_normalize_metadata_with_timezone() -> None:
+def test_normalize_metadata_with_timezone_uses_utc_timestamp() -> None:
     candidate = TimestampCandidate(
         source_kind="exif",
         source_detail="exif_datetimeoriginal",
@@ -39,39 +38,22 @@ def test_normalize_metadata_with_timezone() -> None:
 
     result = normalize_metadata(candidate)
 
-    assert result.naive_timestamp == datetime(2024, 1, 2, 3, 4, 5)
-    assert result.timestamp_source == "exif_datetimeoriginal"
-    assert result.timezone_offset == timedelta(hours=2, minutes=30)
-    assert result.timezone_aware_timestamp == datetime(
-        2024,
-        1,
-        2,
-        3,
-        4,
-        5,
-        tzinfo=timezone(timedelta(hours=2, minutes=30)),
-    )
-    assert result.utc_timestamp == datetime(
-        2024,
-        1,
-        2,
-        0,
-        34,
-        5,
-        tzinfo=timezone.utc,
+    assert result == NormalizedMetadata(
+        timestamp=datetime(2024, 1, 2, 0, 34, 5, tzinfo=timezone.utc),
+        timestamp_source="exif_datetimeoriginal",
     )
 
 
 def test_normalize_metadata_rejects_date_precision() -> None:
     candidate = TimestampCandidate(
         source_kind="filename",
-        source_detail="filename_date_only",
+        source_detail="filename_yyyymmdd",
         naive_timestamp=datetime(2024, 1, 2, 0, 0, 0),
         precision="date",
         timezone_offset=None,
     )
 
-    with pytest.raises(ValueError, match='candidate.precision must be "datetime"'):
+    with pytest.raises(ValueError, match='primary_candidate.precision must be "datetime"'):
         normalize_metadata(candidate)
 
 
