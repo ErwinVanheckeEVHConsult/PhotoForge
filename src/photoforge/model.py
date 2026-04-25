@@ -220,7 +220,6 @@ def validate_contextual_grouping(grouping: ContextualGrouping) -> None:
 
         seen_record_refs.update(group.member_refs)
 
-# Add these blocks to src/photoforge/model.py
 
 @dataclass(frozen=True)
 class ExtractionDiagnostic:
@@ -240,8 +239,6 @@ class ExtractionDiagnostic:
         if self.field_name == "":
             raise ValueError("field_name must not be empty when provided")
 
-
-# Replace the existing MetadataDiagnostics class with this:
 
 @dataclass(frozen=True)
 class MetadataDiagnostics:
@@ -265,8 +262,6 @@ class MetadataDiagnostics:
     def has_extraction_diagnostics(self) -> bool:
         return bool(self.extraction_diagnostics)
 
-
-# Add this near FileRecord / ScanResult models:
 
 @dataclass(frozen=True)
 class FileMetadataDiagnostics:
